@@ -1,5 +1,5 @@
 from .crypto import rand_bytes
-import xproto.crypto
+import xproto.crypto as crypto
 from .x_utils import safe_encode
 from .consts import REQUEST_MAXLEN
 

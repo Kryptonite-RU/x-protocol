@@ -28,7 +28,7 @@ class AgentUser:
         secdata = input("provide your personal data: ")
         return secdata        
 
-    def create_blob(self, request):
+    def create_blob(self, request, data = None):
         if not self.check_request(request):
             raise Exception
         # get scope from request and find inspector who should
@@ -42,8 +42,9 @@ class AgentUser:
         vko_key = vko(ephem_keys, inspector_pub)
 
         # create reply content: Request + SecData + salt
-        secdata = self.get_secdata(request)
-        reply_content = ReplyContent(request, secdata)
+        if data == None:
+            data = self.get_secdata(request)
+        reply_content = ReplyContent(request, data)
         raw_reply = reply_content.encrypt(vko_key)
         blob = Blob(ephem_keys.public, self.ID, raw_reply, 
             key_pair = self.key_pair)

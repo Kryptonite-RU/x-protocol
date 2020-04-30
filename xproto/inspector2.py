@@ -1,7 +1,7 @@
 from .x_utils import safe_encode, split_iv
 from .parsers import parse_blob, parse_reply, parse_date
 from .crypto import vko, rand_bytes, KeyPair, CBC, Grasshopper
-import xproto.crypto
+import xproto.crypto as crypto
 from .messages import Response
 from .auth_center import AUTH 
 
@@ -18,9 +18,9 @@ class Inspector:
         self.sign_pair = keys_sign
         self.vko_pair = keys_vko
 
-    def add_user(self, usr, secdata):
+    def add_user(self, usr, secdata, 
+        date = datetime.datetime.now().date()):
         uid = usr.ID
-        date = datetime.datetime.now().date()
         try:
             self.database[uid][date] = secdata 
         except KeyError:
@@ -55,7 +55,13 @@ class Inspector:
 
     # check that personal data is valid
     def check_data(self, secdata, uid, ttl): 
-        return b'1'
+        try:
+            if (secdata in self.database[uid].values()):
+                return b'1'
+            else:
+                return b'0'
+        except KeyError:
+            return b'0'
 
     def get_vko(self, blob):
         key2 = crypto.export_public_key(blob.pub)
@@ -75,7 +81,7 @@ class Inspector:
             raise Exception
         reply = self.decrypt_blob(blob, key = self.get_vko(blob)) 
         request = reply.request
-        secdata = reply.secdata
+        secdata = reply.secdata.decode()
         if not self.check_uid(request, blob):
             raise Exception
         if not self.check_ttl_scope(request):
