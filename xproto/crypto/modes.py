@@ -1,12 +1,18 @@
 from pygost import gost3413
 
 class ECB:
-    def __init__(self, blockcipher):
+    def __init__(self, blockcipher, pad = None, unpad = None):
         self.enc = blockcipher.encrypt
         self.dec = blockcipher.decrypt
         self.blen = blockcipher.blen
-        self.padding = lambda x : gost3413.pad2(x, self.blen)
-        self.unpadding = lambda x : gost3413.unpad2(x, self.blen)
+        if pad == None:
+            self.padding = lambda x : gost3413.pad2(x, self.blen)
+        else:
+            self.padding = pad
+        if unpad == None:
+            self.unpadding = lambda x : gost3413.unpad2(x, self.blen)
+        else:
+            self.unpadding = unpad
 
     def encrypt(self, text):
         buffer = self.padding(text)
@@ -24,12 +30,18 @@ class ECB:
 
 
 class CBC:
-    def __init__(self, blockcipher):
+    def __init__(self, blockcipher, pad = None, unpad = None):
         self.enc = blockcipher.encrypt
         self.dec = blockcipher.decrypt
         self.blen = blockcipher.blen
-        self.padding = lambda x : gost3413.pad2(x, self.blen)
-        self.unpadding = lambda x : gost3413.unpad2(x, self.blen)
+        if pad == None:
+            self.padding = lambda x : gost3413.pad2(x, self.blen)
+        else:
+            self.padding = pad
+        if unpad == None:
+            self.unpadding = lambda x : gost3413.unpad2(x, self.blen)
+        else:
+            self.unpadding = unpad
         self.iv = bytes(blockcipher.blen)
 
     def set_iv(self, new_iv):
@@ -93,12 +105,18 @@ class OFB:
 
 
 class CFB:
-    def __init__(self, blockcipher):
+    def __init__(self, blockcipher, pad = None, unpad = None):
         self.enc = blockcipher.encrypt
         self.dec = blockcipher.decrypt
         self.blen = blockcipher.blen
-        self.padding = lambda x : gost3413.pad2(x, self.blen)
-        self.unpadding = lambda x : gost3413.unpad2(x, self.blen)
+        if pad == None:
+            self.padding = lambda x : gost3413.pad2(x, self.blen)
+        else:
+            self.padding = pad
+        if unpad == None:
+            self.unpadding = lambda x : gost3413.unpad2(x, self.blen)
+        else:
+            self.unpadding = unpad
         self.iv = bytes(2 * blockcipher.blen)
 
     def set_iv(self, new_iv):
