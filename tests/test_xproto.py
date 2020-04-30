@@ -81,6 +81,8 @@ class ParserTest(unittest.TestCase):
     def test_proto(self):
         scope = "паспортные данные"
         secdata = "Иванов Иван Иванович"
+
+        # REGISTRATION STEP
         usr = x.AgentUser()
         src = x.Service()
         insp = x.Inspector(scope)
@@ -88,16 +90,26 @@ class ParserTest(unittest.TestCase):
         x.AUTH.reg_service(src)
         x.AUTH.reg_inspector(insp)
         insp.add_user(usr, secdata)
+
         # create request for user and send
         UID = usr.ID
         due = datetime.date(2020, 5, 10)
         req = src.create_request(UID, scope, due)
-        raw_request = src.send_request(req)
+        raw = src.send_request(req)
+
         # create blob for the request
-        req2 = usr.receive_request(raw_request)
+        req2 = usr.receive_request(raw)
         blob = usr.create_blob(req2, data = secdata)
-        raw_blob = usr.send_blob(blob)
-        blob2 = insp.receive_blob(raw_blob)
+        raw = usr.send_blob(blob)
+
+        # src checks request and send to inspector
+        blob = src.receive_blob(raw)
+        self.assertTrue(src.check_blob(blob))
+        raw = src.send_blob(blob)
+
+        # inspector gets blob and checks  
+        # everything it has to check
+        blob2 = insp.receive_blob(raw)
         self.assertEqual(blob.uid, blob2.uid)
         self.assertEqual(blob.pub, blob2.pub)
         self.assertEqual(blob.reply, blob2.reply)
@@ -112,6 +124,10 @@ class ParserTest(unittest.TestCase):
         resp = insp.verify_blob(blob2)
         # for good secdata the answer is 1
         self.assertEqual(resp.answer, b'1')
+        raw = insp.send_response(resp)
+
+        resp = src.receive_response(raw)
+        self.assertTrue(src.check_response(resp))
 
         # trying to give false secdata
         secdata = "Иванов Иван Петрович"

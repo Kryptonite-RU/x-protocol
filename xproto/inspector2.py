@@ -87,6 +87,9 @@ class Inspector:
         if not self.check_ttl_scope(request):
             raise Exception
         answer = self.check_data(secdata, blob.uid, request.ttl)
-        response = Response(blob, request.ttl, answer, 
+        response = Response(self.ID, blob, request.ttl, answer, 
             key_pair = self.sign_pair)
         return response
+
+    def send_response(self, resp):
+        return resp.encode()

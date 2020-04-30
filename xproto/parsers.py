@@ -29,9 +29,11 @@ def parse_response(raw):
     raw = cut_signature(raw)
     ans = raw[-ANS_LENGTH : ]
     ttl = raw[-(ANS_LENGTH + TTL_LENGTH) : -ANS_LENGTH]
+    ID = raw[: ID_LENGTH]
+    raw = raw[ID_LENGTH : ]
     raw_blob = raw[ : -(ANS_LENGTH + TTL_LENGTH)]
     blob = parse_blob(raw_blob)
-    resp = Response(blob, ttl, ans, sig = sig)
+    resp = Response(ID, blob, ttl, ans, sig = sig)
     return resp
 
 def parse_reply(raw):

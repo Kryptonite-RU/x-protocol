@@ -2,6 +2,7 @@ from .x_utils import safe_encode
 from .crypto import rand_bytes, KeyPair
 from .messages import Request
 from .auth_center import AUTH 
+from .parsers import parse_response, parse_blob
 
 
 class Service:
@@ -10,14 +11,20 @@ class Service:
         self.key_pair = keys
         self.database = {}
 
-    def check_blob(blob):
+    def receive_response(self, raw):
+        return parse_response(raw)
+
+    def receive_blob(self, raw):
+        return parse_blob(raw)
+
+    def check_blob(self, blob):
         s = blob.sig
         UID = blob.uid
         pub = AUTH.get_user(UID)
         encoded = blob.content()
         return pub.verify(encoded, s)
 
-    def check_response(resp):
+    def check_response(self, resp):
         s = resp.sig
         IID = resp.iid    # Inspector ID
         pub = AUTH.get_inspector_sig(IID)
@@ -36,4 +43,7 @@ class Service:
 
     def send_request(self, request):
         return request.encode()
+
+    def send_blob(self, blob):
+        return blob.encode()
   

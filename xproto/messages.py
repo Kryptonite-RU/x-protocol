@@ -74,19 +74,20 @@ class ReplyContent:
 
 
 class Response:
-    def __init__(self, blob, ttl, answer, 
+    def __init__(self, ID, blob, ttl, answer, 
         key_pair = None, sig = None):
+        self.iid = safe_encode(ID)
         self.blob = safe_encode(blob)
         self.ttl = safe_encode(ttl)
         self.answer = safe_encode(answer)
-        content = self.blob + self.ttl + self.answer
+        content = self.iid + self.blob + self.ttl + self.answer
         if sig:
             self.sig = sig
         else:
             self.sig = key_pair.sign(content)
 
     def content(self):
-        return self.blob + self.ttl + self.answer
+        return self.iid + self.blob + self.ttl + self.answer
 
     def encode(self):
         return self.content() + self.sig
