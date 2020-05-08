@@ -13,7 +13,7 @@ class Inspector:
         keys_vko = KeyPair(), 
         database={}):
         self.database = database
-        self.scope = safe_encode(scope)
+        self.scope = scope
         self.ID = None
         self.sign_pair = keys_sign
         self.vko_pair = keys_vko
@@ -40,11 +40,9 @@ class Inspector:
 
     # returns True iff time is in ttl 
     # (corresponds to the ttl value)
-    # it is assumed that TTL is of type datetime.date
     def check_ttl(self, ttl, 
         curr = datetime.datetime.now().date()):
-        ttl_parsed = parse_date(ttl)
-        return curr <= ttl_parsed
+        return curr <= ttl.expired
 
     def check_uid(self, request, blob):
         return request.uid == blob.uid
@@ -65,6 +63,7 @@ class Inspector:
 
     def get_vko(self, blob):
         key2 = crypto.export_public_key(blob.pub)
+        #key2 = blob.pub
         return vko(self.vko_pair, key2)
 
     def decrypt_blob(self, blob, key = None):
@@ -81,7 +80,7 @@ class Inspector:
             raise Exception
         reply = self.decrypt_blob(blob, key = self.get_vko(blob)) 
         request = reply.request
-        secdata = reply.secdata.decode()
+        secdata = reply.secdata
         if not self.check_uid(request, blob):
             raise Exception
         if not self.check_ttl_scope(request):

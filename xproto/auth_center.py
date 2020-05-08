@@ -12,17 +12,17 @@ class AuthCenter:
 
     def fresh_uid(self):
         self.total_ids += 1
-        res = (self.total_ids).to_bytes(ID_LENGTH, 'big')
+        res = self.total_ids
         return res
 
     def fresh_srcid(self):
         self.total_ids += 1
-        res = (self.total_ids).to_bytes(ID_LENGTH, 'big')
+        res = self.total_ids
         return res
 
     def fresh_iid(self):
         self.total_ids += 1
-        res = (self.total_ids).to_bytes(ID_LENGTH, 'big')
+        res = self.total_ids
         return res
 
     def reg_user(self, user):

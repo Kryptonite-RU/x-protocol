@@ -45,8 +45,8 @@ class AgentUser:
         if data == None:
             data = self.get_secdata(request)
         reply_content = ReplyContent(request, data)
-        raw_reply = reply_content.encrypt(vko_key)
-        blob = Blob(ephem_keys.public, self.ID, raw_reply, 
+        reply = reply_content.encrypt(vko_key)
+        blob = Blob(ephem_keys.public, self.ID, reply, 
             key_pair = self.key_pair)
         return blob
 

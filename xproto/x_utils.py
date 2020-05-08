@@ -1,3 +1,5 @@
+from .consts import ID_LENGTH
+
 def safe_encode(x):
     try:
         res = x.encode()
@@ -9,6 +11,10 @@ def safe_encode(x):
         else:
             res = safe_encode(str(x))
         # any other types?  
+    return res
+
+def encode_id(x):
+    res = (x).to_bytes(ID_LENGTH, 'big')
     return res
 
 def split_iv(data, mode = None):

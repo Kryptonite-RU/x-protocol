@@ -51,5 +51,6 @@ def export_public_key(
         return PublicKey(curve, pub_key = key)
     else:
         # decode first, then create key
+        # key = gost3410.pub_unmarshal(key)
         key = gost3410.pub_unmarshal(key)
         return PublicKey(curve, pub_key = key)
