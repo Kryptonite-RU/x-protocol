@@ -122,9 +122,56 @@ class MessageTest(unittest.TestCase):
 
 
 
+
 class ParserTest(unittest.TestCase):
 
-    def test_encode_scope(self):
+    def setUp(self):
+
+        # some random data
+        scope = "паспортные данные"
+        secdata = "Иванов Иван Иванович"
+        today = datetime.datetime.today().date()
+        due = datetime.date(2099, 5, 10)
+        ttl = x.TTL(today, due)
+
+        # REGISTRATION STEP
+        usr = x.AgentUser()
+        src = x.Service()
+        insp = x.Inspector(scope)
+        x.AUTH.reg_user(usr)
+        x.AUTH.reg_service(src)
+        x.AUTH.reg_inspector(insp)
+        insp.add_user(usr, secdata)
+
+        # Service -> User
+        req = src.create_request(usr.ID, scope, ttl)
+        raw = src.send_request(req)
+        req2 = usr.receive_request(raw)
+        # User -> Service
+        blob = usr.create_blob(req, data = secdata)
+        raw = usr.send_blob(blob)
+        blob2 = src.receive_blob(raw)
+        # Service -> Inspector
+        raw = src.send_blob(blob2)
+        blob3 = insp.receive_blob(raw)
+        reply = insp.decrypt_blob(blob3, 
+            key = insp.get_vko(blob3))
+        # Inspector -> Service
+        resp = insp.verify_blob(blob3)
+        raw = insp.send_response(resp)
+        resp2 = src.receive_response(raw)
+
+        self.req = req
+        self.req2 = req2
+        self.blob = blob
+        self.blob2 = blob2
+        self.blob3 = blob3
+        self.reply_content = reply
+        self.resp = resp
+        self.resp2 = resp2
+
+
+    def test_encode_str(self):
         scope = "паспортные данные"
         raw = x.x_utils.safe_encode(scope)
         scope2 = x.parsers.parse_str(raw)
@@ -151,54 +198,17 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(ttl.expired, ttl2.expired)
 
     def test_encode_request(self):
-        usr = x.AgentUser()
-        src = x.Service()
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        # create request for user
-        UID = usr.ID
-        scope = "паспортные данные"
-        today = datetime.datetime.today().date()
-        due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
-        req = src.create_request(UID, scope, ttl)
-        # encode and send
-        raw_request = src.send_request(req)
-        # receive and decode request
-        req2 = usr.receive_request(raw_request)
-        self.assertEqual(req.srcid, req2.srcid)
-        self.assertEqual(req.uid, req2.uid)
-        self.assertEqual(req.scope, req2.scope)
-        self.assertEqual(req.ttl.produced, req2.ttl.produced)
-        self.assertEqual(req.ttl.expired, req2.ttl.expired)
+        self.assertEqual(self.req.srcid, self.req2.srcid)
+        self.assertEqual(self.req.uid, self.req2.uid)
+        self.assertEqual(self.req.scope, self.req2.scope)
+        self.assertEqual(self.req.ttl.produced, self.req2.ttl.produced)
+        self.assertEqual(self.req.ttl.expired, self.req2.ttl.expired)
 
     def test_encode_blob(self):
-        scope = "паспортные данные"
-        secdata = "Иванов Иван Иванович"
-
-        # REGISTRATION STEP
-        usr = x.AgentUser()
-        src = x.Service()
-        insp = x.Inspector(scope)
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        x.AUTH.reg_inspector(insp)
-        insp.add_user(usr, secdata)
-
-        # create request for user and send
-        UID = usr.ID
-        today = datetime.datetime.today().date()
-        due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
-        req = src.create_request(UID, scope, ttl)
-
-        blob = usr.create_blob(req, data = secdata)   
-        raw = src.send_blob(blob)
-        blob2 = insp.receive_blob(raw)
-
-        self.assertEqual(blob.uid, blob2.uid)
-        self.assertEqual(blob.pub, blob2.pub)
-        self.assertEqual(blob.reply, blob2.reply)
+        self.assertEqual(self.blob.uid, self.blob2.uid)
+        self.assertEqual(self.blob.pub, self.blob2.pub)
+        self.assertEqual(self.blob.reply, self.blob2.reply)
+        # TODO : add blob3
 
 
     def test_proto(self):
