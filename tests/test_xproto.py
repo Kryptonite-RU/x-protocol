@@ -3,25 +3,123 @@
 import unittest
 import xproto as x
 import datetime
-# import sys
-# from io import StringIO
 
 class AuthTest(unittest.TestCase):
 
     def test_auth_reg(self):
         usr = x.AgentUser()
+        usr2 = x.AgentUser()
         src = x.Service()
+        src2 = x.Service()
         insp = x.Inspector("паспортные данные")
+        insp2 = x.Inspector("инн")
 
         x.AUTH.reg_user(usr)
         x.AUTH.reg_service(src)
+        x.AUTH.reg_service(src2)
         x.AUTH.reg_inspector(insp)
+        x.AUTH.reg_user(usr2)
+        x.AUTH.reg_inspector(insp2)
 
         self.assertEqual(x.AUTH.get_user(usr.ID), usr.key_pair.public)
         self.assertEqual(x.AUTH.get_service(src.ID), src.key_pair.public)
         self.assertEqual(x.AUTH.get_inspector_sig(insp.ID), insp.sign_pair.public)
         self.assertEqual(x.AUTH.get_inspector_vko(insp.ID), insp.vko_pair.public)
         self.assertEqual(x.AUTH.scope2inspector(insp.scope), insp.ID)
+
+
+class MessageTest(unittest.TestCase):
+
+    def setUp(self):
+
+        # some random data
+        scope = "паспортные данные"
+        secdata = "Иванов Иван Иванович"
+        today = datetime.datetime.today().date()
+        due = datetime.date(2099, 5, 10)
+        ttl = x.TTL(today, due)
+
+        # REGISTRATION STEP
+        usr = x.AgentUser()
+        src = x.Service()
+        insp = x.Inspector(scope)
+        x.AUTH.reg_user(usr)
+        x.AUTH.reg_service(src)
+        x.AUTH.reg_inspector(insp)
+        insp.add_user(usr, secdata)
+
+        # Service -> User
+        req = src.create_request(usr.ID, scope, ttl)
+        # User -> Service
+        blob = usr.create_blob(req, data = secdata)
+        # Service -> Inspector
+        reply = insp.decrypt_blob(blob, 
+            key = insp.get_vko(blob))
+        # Inspector -> Service
+        resp = insp.verify_blob(blob)
+
+        # data 
+        self.scope = scope
+        self.secdata = secdata
+        self.due = due
+        self.ttl = ttl
+
+        # entities
+        self.usr = usr
+        self.src = src
+        self.insp = insp
+        self.auth = x.AUTH
+
+        # messages
+        self.req = req
+        self.blob = blob
+        self.reply = reply
+        self.resp = resp
+
+
+    def test_form_request(self):
+        UID = self.usr.ID
+        SrcID = self.src.ID
+        today = datetime.datetime.today().date()
+        due = datetime.date(2099, 5, 10)
+        self.assertEqual(self.req.uid, UID)
+        self.assertEqual(self.req.srcid, SrcID)
+        self.assertEqual(self.req.scope, self.scope)
+        self.assertEqual(self.req.ttl.produced, today)
+        self.assertEqual(self.req.ttl.expired, due)
+
+    def test_form_blob(self):
+        self.assertEqual(self.blob.uid, self.usr.ID)
+
+    def test_form_reply(self):
+        reply = self.reply
+        req = reply.request
+        self.assertEqual(reply.secdata, self.secdata)
+        self.assertEqual(req.uid, self.usr.ID)
+        self.assertEqual(req.srcid, self.src.ID)
+        self.assertEqual(req.scope, self.scope)
+        self.assertEqual(req.scope, self.insp.scope)
+        self.assertEqual(req.ttl.expired, self.due)
+
+    def test_form_response(self):
+        resp = self.resp
+        # for good secdata the answer is 1
+        self.assertEqual(resp.answer, b'1')
+        #raw = insp.send_response(resp)
+        #resp = src.receive_response(raw)
+        # trying to give false secdata
+        fakedata = "Иванов Иван Петрович"
+        fakeblob = self.usr.create_blob(self.req, data = fakedata)
+        resp = self.insp.verify_blob(fakeblob)
+        # for fake data the answer must be 0
+        self.assertEqual(resp.answer, b'0')
+
+    def test_verifications(self):
+        self.assertTrue(self.usr.check_request(self.req))
+        self.assertTrue(self.src.check_blob(self.blob))
+        self.assertTrue(self.insp.check_blob(self.blob))
+        self.assertTrue(self.src.check_response(self.resp))
+
 
 
 class ParserTest(unittest.TestCase):
@@ -52,25 +150,6 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(ttl.produced, ttl2.produced)
         self.assertEqual(ttl.expired, ttl2.expired)
 
-    def test_form_request(self):
-        usr = x.AgentUser()
-        src = x.Service()
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        # create request for user
-        UID = usr.ID
-        SrcID = src.ID
-        scope = "паспортные данные"
-        today = datetime.datetime.today().date()
-        due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
-        req = src.create_request(UID, scope, ttl)
-        self.assertEqual(req.uid, UID)
-        self.assertEqual(req.srcid, SrcID)
-        self.assertEqual(req.scope, scope)
-        self.assertEqual(req.ttl.produced, today)
-        self.assertEqual(req.ttl.expired, due)
-
     def test_encode_request(self):
         usr = x.AgentUser()
         src = x.Service()
@@ -92,29 +171,6 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(req.scope, req2.scope)
         self.assertEqual(req.ttl.produced, req2.ttl.produced)
         self.assertEqual(req.ttl.expired, req2.ttl.expired)
-
-    def test_blob_create(self):
-        usr = x.AgentUser()
-        src = x.Service()
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        # create request for user
-        UID = usr.ID
-        scope = "паспортные данные"
-        today = datetime.datetime.today().date()
-        due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
-        req = src.create_request(UID, scope, ttl)
-        # encode and send
-        raw_request = src.send_request(req)
-        # receive and decode request
-        req2 = usr.receive_request(raw_request)
-        # check request and form blob
-        secdata = "Иванов Иван Иванович"
-        blob = usr.create_blob(req2, data = secdata)
-        self.assertEqual(blob.uid, usr.ID)
-        self.assertTrue(src.check_blob(blob))
-
 
     def test_encode_blob(self):
         scope = "паспортные данные"
@@ -159,25 +215,12 @@ class ParserTest(unittest.TestCase):
         insp.add_user(usr, secdata)
 
         # create request for user and send
-        UID = usr.ID
         today = datetime.datetime.today().date()
         due = datetime.date(2099, 5, 10)
         ttl = x.TTL(today, due)
-        req = src.create_request(UID, scope, ttl)
-        # create blob for the request
+        req = src.create_request(usr.ID, scope, ttl)
         blob = usr.create_blob(req, data = secdata)
-        # src checks request and send to inspector
-        self.assertTrue(src.check_blob(blob))
-        # inspector gets blob and checks  
-        # everything it has to check
         reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        req = reply.request
-        self.assertEqual(reply.secdata, secdata)
-        self.assertEqual(req.uid, usr.ID)
-        self.assertEqual(req.srcid, src.ID)
-        self.assertEqual(req.scope, scope)
-        self.assertEqual(req.scope, insp.scope)
-        self.assertEqual(req.ttl.expired, due)
         resp = insp.verify_blob(blob)
         # for good secdata the answer is 1
         self.assertEqual(resp.answer, b'1')
