@@ -1,4 +1,4 @@
-from .x_utils import safe_encode, split_iv
+from .x_utils import safe_encode, split_iv, find_date
 from .parsers import parse_blob, parse_reply, parse_date
 from .crypto import vko, rand_bytes, KeyPair, CBC, Grasshopper
 import xproto.crypto as crypto
@@ -54,12 +54,20 @@ class Inspector:
     # check that personal data is valid
     def check_data(self, secdata, uid, ttl): 
         try:
-            if (secdata in self.database[uid].values()):
+            user_secdata = self.database[uid]
+            ttl_changes = user_secdata.keys()
+            key_ttl = find_date(ttl_changes, ttl.produced)
+            if key_ttl:
+                valid_data = user_secdata[key_ttl]
+            else:
+                return b'0'
+            if secdata == valid_data:
                 return b'1'
             else:
                 return b'0'
         except KeyError:
             return b'0'
+
 
     def get_vko(self, blob):
         key2 = crypto.export_public_key(blob.pub)

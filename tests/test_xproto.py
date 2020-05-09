@@ -105,14 +105,67 @@ class MessageTest(unittest.TestCase):
         resp = self.resp
         # for good secdata the answer is 1
         self.assertEqual(resp.answer, b'1')
-        #raw = insp.send_response(resp)
-        #resp = src.receive_response(raw)
         # trying to give false secdata
         fakedata = "Иванов Иван Петрович"
         fakeblob = self.usr.create_blob(self.req, data = fakedata)
         resp = self.insp.verify_blob(fakeblob)
         # for fake data the answer must be 0
         self.assertEqual(resp.answer, b'0')
+
+    def test_form_old_data(self):
+        scope = "паспортные данные"
+        old_data = "Иванов Иван Иванович"
+        old_time = datetime.date(1990, 1, 1)
+        # then the user changed his surname
+        new_data = "Петров Иван Иванович"
+        new_time = datetime.date(2010, 1, 1)
+
+        # REGISTRATION STEP
+        usr = x.AgentUser()
+        src = x.Service()
+        insp = x.Inspector(scope)
+        x.AUTH.reg_user(usr)
+        x.AUTH.reg_service(src)
+        x.AUTH.reg_inspector(insp)
+        insp.add_user(usr, old_data, date = old_time)
+        insp.add_user(usr, new_data, date = new_time)
+
+        # create request for user and send
+        today = datetime.date(2020, 1, 1)
+        due = datetime.date(2099, 5, 10)
+        ttl = x.TTL(today, due)
+        req = src.create_request(usr.ID, scope, ttl)
+        # first we try to verify old data
+        blob = usr.create_blob(req, data = old_data)
+        reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
+        resp = insp.verify_blob(blob)
+        # for old secdata the answer is 0
+        self.assertEqual(resp.answer, b'0')
+        self.assertFalse(src.check_response(resp))
+
+        # now we try to verify NEW data
+        blob = usr.create_blob(req, data = new_data)
+        reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
+        resp = insp.verify_blob(blob)
+        # for new secdata the answer is 1
+        self.assertEqual(resp.answer, b'1')
+        self.assertTrue(src.check_response(resp))
+
+        # old data for OLD blob should be 1!
+        today = datetime.date(1999, 1, 1)
+        due = datetime.date(2099, 5, 10)
+        ttl = x.TTL(today, due)
+        req = src.create_request(usr.ID, scope, ttl)
+        # try to verify old data
+        blob = usr.create_blob(req, data = old_data)
+        reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
+        resp = insp.verify_blob(blob)
+        # for old secdata the answer is 1, 
+        # because blob is also old
+        self.assertEqual(resp.answer, b'1')
+        self.assertTrue(src.check_response(resp))
+
+
 
     def test_verifications(self):
         self.assertTrue(self.usr.check_request(self.req))
@@ -234,43 +287,6 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(self.resp.ttl.produced, self.resp2.ttl.produced)
         self.assertEqual(self.resp.ttl.expired, self.resp2.ttl.expired)
         self.assertEqual(self.resp.answer, self.resp2.answer)
-
-
-    def test_proto(self):
-        scope = "паспортные данные"
-        secdata = "Иванов Иван Иванович"
-
-        # REGISTRATION STEP
-        usr = x.AgentUser()
-        src = x.Service()
-        insp = x.Inspector(scope)
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        x.AUTH.reg_inspector(insp)
-        insp.add_user(usr, secdata)
-
-        # create request for user and send
-        today = datetime.datetime.today().date()
-        due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
-        req = src.create_request(usr.ID, scope, ttl)
-        blob = usr.create_blob(req, data = secdata)
-        reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        resp = insp.verify_blob(blob)
-        # for good secdata the answer is 1
-        self.assertEqual(resp.answer, b'1')
-        raw = insp.send_response(resp)
-
-        resp = src.receive_response(raw)
-        self.assertTrue(src.check_response(resp))
-
-        # trying to give false secdata
-        secdata = "Иванов Иван Петрович"
-        blob = usr.create_blob(req, data = secdata)
-        resp = insp.verify_blob(blob)
-        # for bad secdata the answer is 1
-        self.assertEqual(resp.answer, b'0')
-
 
 
 if __name__ == "__main__":

@@ -23,4 +23,16 @@ def split_iv(data, mode = None):
     data = data[ivlen : ]
     return (iv, data)
 
+def find_date(dates, date):
+    sort = sorted(dates)
+    # the user registers AFTER the blob was requested
+    if sort[0] > date:
+        return None
+    for i in range(len(dates) - 1):
+        curr = sort[i]
+        nxt = sort[i+1]
+        if curr <= date < nxt:
+            return curr
+    return sort[-1]
+
 
