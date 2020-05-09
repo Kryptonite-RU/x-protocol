@@ -170,6 +170,10 @@ class ParserTest(unittest.TestCase):
         self.resp = resp
         self.resp2 = resp2
 
+        self.scope = scope
+        self.secdata = secdata
+        self.ttl = ttl
+
 
     def test_encode_str(self):
         scope = "паспортные данные"
@@ -208,7 +212,28 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(self.blob.uid, self.blob2.uid)
         self.assertEqual(self.blob.pub, self.blob2.pub)
         self.assertEqual(self.blob.reply, self.blob2.reply)
-        # TODO : add blob3
+        self.assertEqual(self.blob.uid, self.blob3.uid)
+        self.assertEqual(self.blob.pub, self.blob3.pub)
+        self.assertEqual(self.blob.reply, self.blob3.reply)
+
+    def test_encode_reply(self):
+        secdata = self.reply_content.secdata
+        req = self.req
+        self.assertEqual(secdata, self.secdata)
+        self.assertEqual(req.srcid, self.req.srcid)
+        self.assertEqual(req.uid, self.req.uid)
+        self.assertEqual(req.scope, self.req.scope)
+        self.assertEqual(req.ttl.produced, self.req.ttl.produced)
+        self.assertEqual(req.ttl.expired, self.req.ttl.expired)
+
+    def test_encode_response(self):
+        self.assertEqual(self.resp.iid, self.resp2.iid)
+        self.assertEqual(self.resp.blob.uid, self.resp2.blob.uid)
+        self.assertEqual(self.resp.blob.pub, self.resp2.blob.pub)
+        self.assertEqual(self.resp.blob.reply, self.resp2.blob.reply)
+        self.assertEqual(self.resp.ttl.produced, self.resp2.ttl.produced)
+        self.assertEqual(self.resp.ttl.expired, self.resp2.ttl.expired)
+        self.assertEqual(self.resp.answer, self.resp2.answer)
 
 
     def test_proto(self):
