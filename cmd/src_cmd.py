@@ -1,5 +1,6 @@
 import argparse
 import xproto as x
+import datetime
 
 parser = argparse.ArgumentParser(description='Service script')
 
@@ -11,7 +12,11 @@ due = datetime.datetime.strptime(args.due, '%Y-%m-%d')
 ttl = x.TTL(due)
 
 
-src = get_src_data("src.json")
+src = x.load_src("src.json")
 req = x.Request(src.ID, args.uid, args.scope, ttl, 
     key_pair = src.key_pair)
-print(req.srcid, req.uid, req.scope, req.ttl.produced, req.ttl.expired)
+#print(req.srcid, req.uid, req.scope, req.ttl.produced, req.ttl.expired)
+raw = src.send_request(req)
+f = open('request', 'wb')
+f.write(raw)
+f.close()
