@@ -17,7 +17,7 @@ def parse_date(raw):
     rawstr2 = raw.decode()[DATE_LENGTH : ]
     res1 = datetime.datetime.strptime(rawstr1, '%Y-%m-%d')
     res2 = datetime.datetime.strptime(rawstr2, '%Y-%m-%d')
-    ttl = TTL(res1.date(), res2.date())
+    ttl = TTL(res2.date(), produced=res1.date())
     return ttl
 
 def parse_request(raw):

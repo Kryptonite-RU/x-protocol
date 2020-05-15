@@ -4,10 +4,10 @@ from .parsers import parse_request
 from .auth_center import AUTH 
 
 class AgentUser:
-    def __init__(self, keys = KeyPair()):
-        self.ID = None
+    def __init__(self, keys=KeyPair(), ID=None, db={}):
+        self.ID = ID
         self.key_pair = keys
-        self.database = {}
+        self.database = db
 
     def receive_request(self, raw):
         req = parse_request(raw)

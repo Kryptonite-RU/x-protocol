@@ -2,6 +2,8 @@ from .crypto import rand_bytes
 import xproto.crypto as crypto
 from .x_utils import safe_encode, encode_id
 from .consts import REQUEST_MAXLEN
+import datetime
+
 
 class Request:
     def __init__(self, SrcID, UID, scope, ttl, 
@@ -111,8 +113,8 @@ class Response:
 
 
 class TTL:
-    def __init__(self, from_date, expire_date):
-        self.produced = from_date
+    def __init__(self, expire_date, produced=datetime.datetime.now().date()):
+        self.produced = produced
         self.expired = expire_date
 
     def encode(self):

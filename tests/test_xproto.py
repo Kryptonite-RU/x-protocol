@@ -37,7 +37,7 @@ class MessageTest(unittest.TestCase):
         secdata = "Иванов Иван Иванович"
         today = datetime.datetime.today().date()
         due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
+        ttl = x.TTL(due)
 
         # REGISTRATION STEP
         usr = x.AgentUser()
@@ -133,7 +133,7 @@ class MessageTest(unittest.TestCase):
         # create request for user and send
         today = datetime.date(2020, 1, 1)
         due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
+        ttl = x.TTL(due, produced=today)
         req = src.create_request(usr.ID, scope, ttl)
         # first we try to verify old data
         blob = usr.create_blob(req, data = old_data)
@@ -154,7 +154,7 @@ class MessageTest(unittest.TestCase):
         # old data for OLD blob should be 1!
         today = datetime.date(1999, 1, 1)
         due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
+        ttl = x.TTL(due, produced=today)
         req = src.create_request(usr.ID, scope, ttl)
         # try to verify old data
         blob = usr.create_blob(req, data = old_data)
@@ -185,7 +185,7 @@ class ParserTest(unittest.TestCase):
         secdata = "Иванов Иван Иванович"
         today = datetime.datetime.today().date()
         due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
+        ttl = x.TTL(due)
 
         # REGISTRATION STEP
         usr = x.AgentUser()
@@ -248,7 +248,7 @@ class ParserTest(unittest.TestCase):
     def test_encode_date(self):
         today = datetime.datetime.today().date()
         due = datetime.date(2099, 5, 10)
-        ttl = x.TTL(today, due)
+        ttl = x.TTL(due)
         raw = x.x_utils.safe_encode(ttl)
         ttl2 = x.parsers.parse_date(raw)
         self.assertEqual(ttl.produced, ttl2.produced)

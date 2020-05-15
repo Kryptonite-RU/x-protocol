@@ -11,10 +11,11 @@ class Inspector:
     def __init__(self,  scope, 
         keys_sign = KeyPair(), 
         keys_vko = KeyPair(), 
+        ID = None,
         database={}):
         self.database = database
         self.scope = scope
-        self.ID = None
+        self.ID = ID
         self.sign_pair = keys_sign
         self.vko_pair = keys_vko
 

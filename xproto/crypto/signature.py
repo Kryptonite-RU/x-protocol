@@ -6,8 +6,9 @@ class PublicKey:
     def __init__(
         self, 
         curve, 
-        pub_key = None, 
-        priv_key = None):
+        pub_key=None, 
+        priv_key=None,
+        cert=None):
         if pub_key == None:
             self.key = gost3410.public_key(curve, priv_key)
         else:
@@ -16,7 +17,7 @@ class PublicKey:
             else: # type = bytes/bytearray
                 self.key = gost3410.pub_unmarshal(pub_key)
         self.curve = curve
-        self.certificate = None
+        self.certificate = cert
 
     def verify(self, msg, s):
         digest = gost34112012.GOST34112012(msg).digest()
@@ -31,11 +32,14 @@ class PublicKey:
 class KeyPair:
     def __init__(
         self, 
-        raw_key = rand_bytes(32),
-        curve_type = "id-tc26-gost-3410-2012-256-paramSetA"):
+        raw_key=rand_bytes(32),
+        curve_type="id-tc26-gost-3410-2012-256-paramSetA",
+        private=None,
+        cert=None):
         self.curve = gost3410.CURVES[curve_type]
         self.private = gost3410.prv_unmarshal(raw_key)
-        self.public = PublicKey(self.curve, priv_key = self.private)
+        self.public = PublicKey(self.curve, 
+            priv_key=self.private, cert=cert)
 
     def sign(self, msg):
         digest = gost34112012.GOST34112012(msg).digest()

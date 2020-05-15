@@ -6,10 +6,10 @@ from .parsers import parse_response, parse_blob
 
 
 class Service:
-    def __init__(self, keys = KeyPair()):
-        self.ID = None
+    def __init__(self, keys=KeyPair(), ID=None, db={}):
+        self.ID = ID
         self.key_pair = keys
-        self.database = {}
+        self.database = db
 
     def receive_response(self, raw):
         return parse_response(raw)
