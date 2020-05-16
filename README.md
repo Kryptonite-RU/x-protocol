@@ -11,11 +11,11 @@
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.src_cmd -u <user-id:int> -d <data-scope:str> -t <date>`
+`python -m cmd.src -u <user-id:int> -d <data-scope:str> -t <date>`
 
 Например:
 
-`python -m cmd.src_cmd -u 123 -d "паспортные данные" -t 2099-01-01`
+`python -m cmd.src -u 123 -d "паспортные данные" -t 2099-01-01`
 
 Дата пишется в формате YYYY-MM-DD.
 Данные сервиса берутся из файла src.json (ID, ключи, сертификаты).
