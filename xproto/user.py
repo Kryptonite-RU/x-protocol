@@ -1,6 +1,5 @@
 from .crypto import rand_bytes, KeyPair, vko
-from .messages import ReplyContent, Blob
-from .parsers import parse_request
+from .messages import ReplyContent, Blob, Request
 from .auth_center import AUTH 
 
 class AgentUser:
@@ -10,7 +9,7 @@ class AgentUser:
         self.database = db
 
     def receive_request(self, raw):
-        req = parse_request(raw)
+        req = Request.parse(raw)
         return req
 
     def check_request(self, req):

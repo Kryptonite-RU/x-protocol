@@ -1,8 +1,7 @@
 from .x_utils import safe_encode, split_iv, find_date
-#from .parsers import parse_blob, parse_reply, parse_date
 from .crypto import vko, rand_bytes, KeyPair, CBC, Grasshopper
 import xproto.crypto as crypto
-from .messages import Response
+from .messages import Response, ReplyContent, Blob
 from .auth_center import AUTH 
 
 import datetime
@@ -29,7 +28,7 @@ class Inspector:
             self.database[uid][date] = secdata
 
     def receive_blob(self, raw):
-        blob = parse_blob(raw)
+        blob = Blob.parse(raw)
         return blob
 
     def check_blob(self, blob):
@@ -81,7 +80,7 @@ class Inspector:
         iv, reply = split_iv(blob.reply, mode = cbc)
         cbc.set_iv(iv)
         reply_content = cbc.decrypt(reply)
-        reply_content = parse_reply(reply_content)
+        reply_content = ReplyContent.parse(reply_content)
         return reply_content
 
     def verify_blob(self, blob): 

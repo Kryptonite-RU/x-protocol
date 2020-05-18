@@ -71,6 +71,7 @@ class Request:
         d["scope"] = self.scope
         d["ttl"] = self.ttl.to_dict()
         d["sig"] = self.sig
+        return d
 
     @classmethod
     def from_dict(cls, d):
@@ -123,6 +124,7 @@ class Blob:
         d["uid"] = self.uid
         d["reply"] = self.reply
         d["sig"] = self.sig
+        return d
 
     @classmethod
     def from_dict(cls, d):
@@ -215,6 +217,7 @@ class Response:
         d["ttl"] = self.ttl.to_dict()
         d["ans"] = self.answer
         d["sig"] = self.sig
+        return d
 
     @classmethod
     def from_dict(cls, d):
@@ -226,7 +229,7 @@ class Response:
         return cls(iid, blob, ttl, ans, sig=sig)
 
     @classmethod
-    def parse(cls):
+    def parse(cls, raw):
         sig = raw[-SIG_LENGTH : ]
         raw = cut_signature(raw)
         ans = raw[-ANS_LENGTH : ]

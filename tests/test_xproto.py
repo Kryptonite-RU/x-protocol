@@ -231,7 +231,7 @@ class ParserTest(unittest.TestCase):
     def test_encode_str(self):
         scope = "паспортные данные"
         raw = x.x_utils.safe_encode(scope)
-        scope2 = x.parsers.parse_str(raw)
+        scope2 = x.x_utils.parse_str(raw)
         self.assertEqual(scope, scope2)
 
     def test_encode_int(self):
@@ -242,7 +242,7 @@ class ParserTest(unittest.TestCase):
     def test_encode_id(self):
         ID = 123
         s = x.x_utils.encode_id(ID)
-        ID2 = x.parsers.parse_number(s)
+        ID2 = x.x_utils.parse_number(s)
         self.assertEqual(ID, ID2)
 
     def test_encode_date(self):
@@ -250,7 +250,7 @@ class ParserTest(unittest.TestCase):
         due = datetime.date(2099, 5, 10)
         ttl = x.TTL(due)
         raw = x.x_utils.safe_encode(ttl)
-        ttl2 = x.parsers.parse_date(raw)
+        ttl2 = x.TTL.parse(raw)
         self.assertEqual(ttl.produced, ttl2.produced)
         self.assertEqual(ttl.expired, ttl2.expired)
 
@@ -287,6 +287,89 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(self.resp.ttl.produced, self.resp2.ttl.produced)
         self.assertEqual(self.resp.ttl.expired, self.resp2.ttl.expired)
         self.assertEqual(self.resp.answer, self.resp2.answer)
+
+
+class JSONTest(unittest.TestCase):
+
+    def setUp(self):
+
+        # some random data
+        scope = "паспортные данные"
+        secdata = "Иванов Иван Иванович"
+        today = datetime.datetime.today().date()
+        due = datetime.date(2099, 5, 10)
+        ttl = x.TTL(due)
+
+        # REGISTRATION STEP
+        usr = x.AgentUser()
+        src = x.Service()
+        insp = x.Inspector(scope)
+        x.AUTH.reg_user(usr)
+        x.AUTH.reg_service(src)
+        x.AUTH.reg_inspector(insp)
+        insp.add_user(usr, secdata)
+
+        # Service -> User
+        req = src.create_request(usr.ID, scope, ttl)
+        # User -> Service
+        blob = usr.create_blob(req, data=secdata)
+        # Inspector -> Service
+        reply = insp.decrypt_blob(blob, key=insp.get_vko(blob))
+        resp = insp.verify_blob(blob)
+
+        self.req = req
+        self.blob = blob
+        self.reply_content = reply
+        self.resp = resp
+
+
+    def test_dict_request(self):
+        req = self.req
+        d = req.to_dict()
+        req2 = x.Request.from_dict(d)
+        self.assertEqual(req.srcid, req2.srcid)
+        self.assertEqual(req.uid, req2.uid)
+        self.assertEqual(req.scope, req2.scope)
+        self.assertEqual(req.ttl.produced, req2.ttl.produced)
+        self.assertEqual(req.ttl.expired, req2.ttl.expired)
+
+    def test_dict_blob(self):
+        d = self.blob.to_dict()
+        self.blob2 = x.Blob.from_dict(d)
+        self.assertEqual(self.blob.uid, self.blob2.uid)
+        self.assertEqual(self.blob.pub, self.blob2.pub)
+        self.assertEqual(self.blob.reply, self.blob2.reply)
+
+    # def test_dict_reply(self):
+    #     reply1 = self.reply_content
+    #     req = reply1.request
+    #     d = reply1.to_dict()
+    #     reply2 = x.ReplyContent.from_dict(d)
+    #     req2 = reply2.request
+    #     self.assertEqual(reply1.secdata, reply2.secdata)
+    #     self.assertEqual(reply1.salt, reply2.salt)
+    #     self.assertEqual(req.srcid, req2.srcid)
+    #     self.assertEqual(req.uid, req2.uid)
+    #     self.assertEqual(req.scope, req2.scope)
+    #     self.assertEqual(req.ttl.produced, req2.ttl.produced)
+    #     self.assertEqual(req.ttl.expired, req2.ttl.expired)
+
+    def test_encode_response(self):
+        d = self.resp.to_dict()
+        self.resp2 = x.Response.from_dict(d)
+        self.assertEqual(self.resp.iid, self.resp2.iid)
+        self.assertEqual(self.resp.blob.uid, self.resp2.blob.uid)
+        self.assertEqual(self.resp.blob.pub, self.resp2.blob.pub)
+        self.assertEqual(self.resp.blob.reply, self.resp2.blob.reply)
+        self.assertEqual(self.resp.ttl.produced, self.resp2.ttl.produced)
+        self.assertEqual(self.resp.ttl.expired, self.resp2.ttl.expired)
+        self.assertEqual(self.resp.answer, self.resp2.answer)
+    
+
+
+
+
+
 
 
 if __name__ == "__main__":

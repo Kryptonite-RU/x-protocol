@@ -1,9 +1,7 @@
 from .x_utils import safe_encode
 from .crypto import rand_bytes, KeyPair
-from .messages import Request
+from .messages import Request, Blob, Response
 from .auth_center import AUTH 
-from .parsers import parse_response, parse_blob
-
 
 class Service:
     def __init__(self, keys=KeyPair(), ID=None, db={}):
@@ -12,10 +10,10 @@ class Service:
         self.database = db
 
     def receive_response(self, raw):
-        return parse_response(raw)
+        return Response.parse(raw)
 
     def receive_blob(self, raw):
-        return parse_blob(raw)
+        return Blob.parse(raw)
 
     def check_blob(self, blob):
         s = blob.sig

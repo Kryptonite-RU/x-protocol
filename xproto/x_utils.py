@@ -1,4 +1,4 @@
-from .consts import ID_LENGTH
+from .consts import ID_LENGTH, SIG_LENGTH
 
 def safe_encode(x):
     try:
