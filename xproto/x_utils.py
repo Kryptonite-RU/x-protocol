@@ -36,3 +36,11 @@ def find_date(dates, date):
     return sort[-1]
 
 
+def cut_signature(data):
+    return data[: -SIG_LENGTH]
+
+def parse_number(raw):
+    return int.from_bytes(raw, 'big')
+
+def parse_str(raw):
+    return raw.decode()

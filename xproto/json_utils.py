@@ -53,6 +53,24 @@ def json_to_insp(jstr):
         sign_keys = sign_pair, database=db)
 
 
+def auth_to_json(auth):
+    #     users = {},
+    #     services = {}
+    #     inspectors_sig = {}
+    #     inspectors_vko = {}
+    #     scopes = {},
+    #     total_ids = 0
+    d = {}
+    d["id"] = insp.ID
+    d["scope"] = insp.scope
+    d["sign_private"] = insp.sign_pair.private
+    d["sign_certificate"] = src.sign_pair.public.certificate
+    d["vko_private"] = insp.vko_pair.private
+    d["vko_certificate"] = insp.vko_pair.public.certificate
+    d["database"] = insp.database
+    return json.dumps(d)
+
+
 def json_to_file(filename, data):
     with open(filename, 'w') as outfile:
         json.dump(data, outfile)

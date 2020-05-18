@@ -12,11 +12,11 @@ due = datetime.datetime.strptime(args.due, '%Y-%m-%d')
 ttl = x.TTL(due)
 
 
-src = x.load_src("src.json")
+src = x.load_src("data/src.json")
 req = x.Request(src.ID, args.uid, args.scope, ttl, 
     key_pair = src.key_pair)
 #print(req.srcid, req.uid, req.scope, req.ttl.produced, req.ttl.expired)
 raw = src.send_request(req)
-f = open('request', 'wb')
+f = open('data/request', 'wb')
 f.write(raw)
 f.close()

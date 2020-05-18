@@ -1,5 +1,5 @@
 from .x_utils import safe_encode, split_iv, find_date
-from .parsers import parse_blob, parse_reply, parse_date
+#from .parsers import parse_blob, parse_reply, parse_date
 from .crypto import vko, rand_bytes, KeyPair, CBC, Grasshopper
 import xproto.crypto as crypto
 from .messages import Response

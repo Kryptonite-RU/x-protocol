@@ -2,13 +2,19 @@ from .x_utils import safe_encode
 from .consts import ID_LENGTH
 
 class AuthCenter:
-    def __init__(self):
-        self.users = {}
-        self.services = {}
-        self.inspectors_sig = {}
-        self.inspectors_vko = {}
-        self.scopes = {}
-        self.total_ids = 0
+    def __init__(self,
+        users = {},
+        services = {},
+        inspectors_sig = {},
+        inspectors_vko = {},
+        scopes = {},
+        total_ids = 0):
+        self.users = users
+        self.services = services
+        self.inspectors_sig = inspectors_sig
+        self.inspectors_vko = inspectors_vko
+        self.scopes = scopes
+        self.total_ids = total_ids
 
     def fresh_uid(self):
         self.total_ids += 1
