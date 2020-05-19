@@ -1,13 +1,20 @@
 import json
 import xproto as x
 
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (bytes, bytearray)):
+            return obj.decode("utf-8") # <- or any other encoding of your choice
+        # Let the base class default method raise the TypeError
+        return json.JSONEncoder.default(self, obj)
+
 def dict_to_json(d):
-    return json.dumps(d)
+    return json.dumps(d, cls = MyEncoder)
 
 # where entity is AgentUser/Service/Inspector
 def to_json(entity):
     d = entity.to_dict()
-    return json.dumps(d)
+    return dict_to_json(d)
 
 def json_to_src(jstr):
     d = json.loads(jstr)

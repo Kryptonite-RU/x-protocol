@@ -79,7 +79,7 @@ class AgentUser:
             req = Request.from_dict(db[i]["key"])
             blob = Blob.from_dict(db[i]["value"])
             data[req] = blob
-        return AgentUser(keys=keys, ID=ID, db=data)
+        return cls(keys=keys, ID=ID, db=data)
 
         
 

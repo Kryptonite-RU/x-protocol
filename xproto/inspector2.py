@@ -117,3 +117,42 @@ class Inspector:
 
     def send_response(self, resp):
         return resp.encode()
+
+    def to_dict(self):
+        d = {}
+        d["id"] = self.ID
+        d["scope"] = self.scope
+        d["keys_sign"] = self.sign_pair.to_dict()
+        d["keys_vko"] = self.vko_pair.to_dict()
+        data = {}
+        db = self.database
+        for (i, uid) in enumerate(db.keys()):
+            data[i] = {}
+            data[i]["uid"] = uid
+            data[i]["value"] = {}
+            for (j, date) in enumerate(db[uid].keys()):
+                data[i]["value"][j] = {}
+                data[i]["value"][j]["time"] = str(date)
+                data[i]["value"][j]["sec"] = db[uid][date]
+        d["database"] = data
+        return d
+
+    @classmethod
+    def from_dict(cls, d):
+        ID = d["id"]
+        scope = d["scope"]
+        keys_sign = KeyPair.from_dict(d["keys_sign"])
+        keys_vko = KeyPair.from_dict(d["keys_vko"])
+        db = d["database"]
+        data = {}
+        for i in db.keys():
+            uid = db[i]["uid"]
+            data[uid] = {}
+            for j in db[i]["value"].keys():
+                rawstr = db[i]["value"][j]["time"]
+                res = datetime.datetime.strptime(rawstr, '%Y-%m-%d')
+                time = res.date()
+                secdata = db[i]["value"][j]["sec"]
+                data[uid][time] = secdata
+        return cls(scope, keys_sign=keys_sign, 
+            keys_vko=keys_vko, ID=ID, database=data)

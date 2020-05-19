@@ -3,6 +3,7 @@
 import unittest
 import xproto as x
 import datetime
+from xproto import json_utils as jutils
 
 class AuthTest(unittest.TestCase):
 
@@ -56,7 +57,7 @@ class MessageTest(unittest.TestCase):
         reply = insp.decrypt_blob(blob, 
             key = insp.get_vko(blob))
         # Inspector -> Service
-        resp = insp.verify_blob(blob)
+        resp = insp.verify_blob(blob, req)
 
         # data 
         self.scope = scope
@@ -108,7 +109,7 @@ class MessageTest(unittest.TestCase):
         # trying to give false secdata
         fakedata = "Иванов Иван Петрович"
         fakeblob = self.usr.create_blob(self.req, data = fakedata)
-        resp = self.insp.verify_blob(fakeblob)
+        resp = self.insp.verify_blob(fakeblob, self.req)
         # for fake data the answer must be 0
         self.assertEqual(resp.answer, b'0')
 
@@ -138,7 +139,7 @@ class MessageTest(unittest.TestCase):
         # first we try to verify old data
         blob = usr.create_blob(req, data = old_data)
         reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        resp = insp.verify_blob(blob)
+        resp = insp.verify_blob(blob, req)
         # for old secdata the answer is 0
         self.assertEqual(resp.answer, b'0')
         self.assertFalse(src.check_response(resp))
@@ -146,7 +147,7 @@ class MessageTest(unittest.TestCase):
         # now we try to verify NEW data
         blob = usr.create_blob(req, data = new_data)
         reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        resp = insp.verify_blob(blob)
+        resp = insp.verify_blob(blob, req)
         # for new secdata the answer is 1
         self.assertEqual(resp.answer, b'1')
         self.assertTrue(src.check_response(resp))
@@ -159,7 +160,7 @@ class MessageTest(unittest.TestCase):
         # try to verify old data
         blob = usr.create_blob(req, data = old_data)
         reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        resp = insp.verify_blob(blob)
+        resp = insp.verify_blob(blob, req)
         # for old secdata the answer is 1, 
         # because blob is also old
         self.assertEqual(resp.answer, b'1')
@@ -210,7 +211,7 @@ class ParserTest(unittest.TestCase):
         reply = insp.decrypt_blob(blob3, 
             key = insp.get_vko(blob3))
         # Inspector -> Service
-        resp = insp.verify_blob(blob3)
+        resp = insp.verify_blob(blob3, req)
         raw = insp.send_response(resp)
         resp2 = src.receive_response(raw)
 
@@ -280,13 +281,7 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(req.ttl.expired, self.req.ttl.expired)
 
     def test_encode_response(self):
-        self.assertEqual(self.resp.iid, self.resp2.iid)
-        self.assertEqual(self.resp.blob.uid, self.resp2.blob.uid)
-        self.assertEqual(self.resp.blob.pub, self.resp2.blob.pub)
-        self.assertEqual(self.resp.blob.reply, self.resp2.blob.reply)
-        self.assertEqual(self.resp.ttl.produced, self.resp2.ttl.produced)
-        self.assertEqual(self.resp.ttl.expired, self.resp2.ttl.expired)
-        self.assertEqual(self.resp.answer, self.resp2.answer)
+        self.assertEqual(self.resp, self.resp2)
 
 
 class JSONTest(unittest.TestCase):
@@ -315,30 +310,28 @@ class JSONTest(unittest.TestCase):
         blob = usr.create_blob(req, data=secdata)
         # Inspector -> Service
         reply = insp.decrypt_blob(blob, key=insp.get_vko(blob))
-        resp = insp.verify_blob(blob)
+        resp = insp.verify_blob(blob, req)
 
         self.req = req
         self.blob = blob
         self.reply_content = reply
         self.resp = resp
 
+        self.usr = usr
+        self.src = src
+        self.insp = insp
+
 
     def test_dict_request(self):
         req = self.req
         d = req.to_dict()
         req2 = x.Request.from_dict(d)
-        self.assertEqual(req.srcid, req2.srcid)
-        self.assertEqual(req.uid, req2.uid)
-        self.assertEqual(req.scope, req2.scope)
-        self.assertEqual(req.ttl.produced, req2.ttl.produced)
-        self.assertEqual(req.ttl.expired, req2.ttl.expired)
+        self.assertEqual(req, req2)
 
     def test_dict_blob(self):
         d = self.blob.to_dict()
         self.blob2 = x.Blob.from_dict(d)
-        self.assertEqual(self.blob.uid, self.blob2.uid)
-        self.assertEqual(self.blob.pub, self.blob2.pub)
-        self.assertEqual(self.blob.reply, self.blob2.reply)
+        self.assertEqual(self.blob, self.blob2)
 
     # def test_dict_reply(self):
     #     reply1 = self.reply_content
@@ -354,16 +347,58 @@ class JSONTest(unittest.TestCase):
     #     self.assertEqual(req.ttl.produced, req2.ttl.produced)
     #     self.assertEqual(req.ttl.expired, req2.ttl.expired)
 
-    def test_encode_response(self):
+    def test_dict_response(self):
         d = self.resp.to_dict()
-        self.resp2 = x.Response.from_dict(d)
-        self.assertEqual(self.resp.iid, self.resp2.iid)
-        self.assertEqual(self.resp.blob.uid, self.resp2.blob.uid)
-        self.assertEqual(self.resp.blob.pub, self.resp2.blob.pub)
-        self.assertEqual(self.resp.blob.reply, self.resp2.blob.reply)
-        self.assertEqual(self.resp.ttl.produced, self.resp2.ttl.produced)
-        self.assertEqual(self.resp.ttl.expired, self.resp2.ttl.expired)
-        self.assertEqual(self.resp.answer, self.resp2.answer)
+        resp2 = x.Response.from_dict(d)
+        self.assertEqual(self.resp, resp2)
+
+
+    def test_dict_user(self):
+        usr = self.usr
+        d = usr.to_dict()
+        usr2 = x.AgentUser.from_dict(d)
+        self.assertEqual(usr.ID, usr2.ID)
+        keys1 = usr.key_pair
+        keys2 = usr2.key_pair
+        self.assertEqual(keys1, keys2)
+        for k in usr.database.keys():
+            self.assertEqual(usr.database[k], usr2.database[k])
+        for k in usr2.database.keys():
+            self.assertEqual(usr.database[k], usr2.database[k])
+
+    # def test_json_user(self):
+    #     js = jutils.to_json(self.usr)
+    #     usr2 = jutils.json_to_usr(js)
+    #     self.assertEqual(self.usr, usr2)
+
+    def test_dict_service(self):
+        src = self.src
+        d = src.to_dict()
+        src2 = x.Service.from_dict(d)
+        self.assertEqual(src.ID, src2.ID)
+        keys1 = src.key_pair
+        keys2 = src2.key_pair
+        self.assertEqual(keys1, keys2)
+        for k in src.database.keys():
+            self.assertEqual(src.database[k], src2.database[k])
+        for k in src2.database.keys():
+            self.assertEqual(src.database[k], src2.database[k])
+
+    def test_dict_insp(self):
+        insp = self.insp
+        d = insp.to_dict()
+        insp2 = x.Inspector.from_dict(d)
+        self.assertEqual(insp.ID, insp2.ID)
+        self.assertEqual(insp.scope, insp2.scope)
+        self.assertEqual(insp.vko_pair, insp2.vko_pair)
+        self.assertEqual(insp.sign_pair, insp2.sign_pair)
+        for k in insp.database.keys():
+            self.assertEqual(insp.database[k], insp2.database[k])
+        for k in insp2.database.keys():
+            self.assertEqual(insp.database[k], insp2.database[k])
+
+
+
     
 
 
