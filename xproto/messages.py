@@ -17,13 +17,13 @@ class TTL:
 
     def to_dict(self):
         d = {}
-        d["produced"] = self.produced
-        d["expired"] = self.expired
+        d["produced"] = safe_encode(self.produced)
+        d["expired"] = safe_encode(self.expired)
         return d
 
     @classmethod
     def from_dict(cls, d):
-        return cls(d["expired"], produced = d["produced"])
+        return cls.parse(d["produced"] + d["expired"])
 
     @classmethod
     def parse(cls, raw):
@@ -33,6 +33,11 @@ class TTL:
         res2 = datetime.datetime.strptime(rawstr2, '%Y-%m-%d')
         ttl = cls(res2.date(), produced=res1.date())
         return ttl
+
+    def __eq__(self, other):
+        ch1 = (self.produced == other.produced)
+        ch2 = (self.expired == other.expired)
+        return ch1 and ch2
 
 
 
@@ -93,6 +98,16 @@ class Request:
         req = cls(SrcID, UID, scope, ttl, sig=sig)
         return req
 
+    def __eq__(self, other):
+        ch1 = self.srcid == other.srcid
+        ch2 = self.uid == other.uid
+        ch3 = self.scope == other.scope
+        ch4 = self.ttl == other.ttl
+        return ch1 and ch2 and ch3 and ch4
+
+    def __hash__(self):
+        return hash(self.encode())
+
 
 
 class Blob:
@@ -144,6 +159,13 @@ class Blob:
         blob  = cls(pub_ephem, UID, reply, sig=sig)
         return blob
 
+    def __eq__(self, other):
+        ch1 = self.pub == other.pub
+        ch2 = self.uid == other.uid
+        ch3 = self.reply == other.reply
+        return ch1 and ch2 and ch3
+
+
 
 
 class ReplyContent:
@@ -182,6 +204,10 @@ class ReplyContent:
         salt = raw[ -SALT_LENGTH : ]
         return cls(req, secdata, salt=salt)
 
+    def __eq__(self, other):
+        ch1 = self.request == other.request
+        ch2 = self.secdata == other.secdata
+        return ch1 and ch2
 
 
 class Response:
@@ -240,5 +266,12 @@ class Response:
         blob = Blob.parse(raw_blob)
         resp = cls(ID, blob, ttl, ans, sig=sig)
         return resp
+
+    def __eq__(self, other):
+        ch1 = self.iid == other.iid
+        ch2 = self.blob == other.blob
+        ch3 = self.ttl == other.ttl
+        ch4 = self.answer == other.answer
+        return ch1 and ch2 and ch3 and ch4
 
 

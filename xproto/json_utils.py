@@ -1,56 +1,25 @@
 import json
 import xproto as x
 
-def src_to_json(src):
-    d = {}
-    d["id"] = src.ID
-    d["private"] = src.key_pair.private
-    d["certificate"] = src.key_pair.public.certificate
-    d["database"] = src.database
+def dict_to_json(d):
+    return json.dumps(d)
+
+# where entity is AgentUser/Service/Inspector
+def to_json(entity):
+    d = entity.to_dict()
     return json.dumps(d)
 
 def json_to_src(jstr):
-    jd = json.loads(jstr)
-    srcid = jd["id"]
-    kpair = x.crypto.KeyPair(private=jd["private"],
-        cert = jd["certificate"])
-    db = jd["database"]
-    return x.Service(ID=srcid, keys=kpair, db=db)
-
-def usr_to_json(usr):
-    # all fields are the same!!
-    return src_to_json(usr)
+    d = json.loads(jstr)
+    return x.Service.from_dict(jd)
 
 def json_to_usr(jstr):
-    jd = json.loads(jstr)
-    uid = jd["id"]
-    kpair = x.crypto.KeyPair(private=jd["private"],
-        cert = jd["certificate"])
-    db = jd["database"]
-    return x.AgentUser(ID=srcid, keys=kpair, db=db)
-
-def insp_to_json(insp):
-    d = {}
-    d["id"] = insp.ID
-    d["scope"] = insp.scope
-    d["sign_private"] = insp.sign_pair.private
-    d["sign_certificate"] = src.sign_pair.public.certificate
-    d["vko_private"] = insp.vko_pair.private
-    d["vko_certificate"] = insp.vko_pair.public.certificate
-    d["database"] = insp.database
-    return json.dumps(d)
-
+    d = json.loads(jstr)
+    return x.Service.from_dict(jd)
 
 def json_to_insp(jstr):
-    jd = json.loads(jstr)
-    iid = jd["id"]
-    sign_pair = x.crypto.KeyPair(private=jd["sign_private"],
-        cert = jd["sign_certificate"])
-    vko_pair = x.crypto.KeyPair(private=jd["vko_private"],
-        cert = jd["vko_certificate"])
-    db = jd["database"]
-    return x.Inspector(ID=iid, vko_keys=vko_pair, 
-        sign_keys = sign_pair, database=db)
+    d = json.loads(jstr)
+    return x.Inspector.from_dict(d)
 
 
 def auth_to_json(auth):

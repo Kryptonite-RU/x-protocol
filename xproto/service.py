@@ -10,7 +10,8 @@ class Service:
         self.database = db
 
     def receive_response(self, raw):
-        return Response.parse(raw)
+        resp = Response.parse(raw)
+        return resp
 
     def receive_blob(self, raw):
         return Blob.parse(raw)

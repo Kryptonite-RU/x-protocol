@@ -1,7 +1,7 @@
 from .x_utils import safe_encode, split_iv, find_date
 from .crypto import vko, rand_bytes, KeyPair, CBC, Grasshopper
 import xproto.crypto as crypto
-from .messages import Response, ReplyContent, Blob
+from .messages import Response, ReplyContent, Blob, Request
 from .auth_center import AUTH 
 
 import datetime
@@ -37,6 +37,17 @@ class Inspector:
         pub = AUTH.get_user(UID)
         encoded = blob.content()
         return pub.verify(encoded, s)
+
+    def receive_request(self, raw):
+        req = Request.parse(raw)
+        return req
+
+    def check_request(self, req):
+        SrcID = req.srcid
+        pub = AUTH.get_service(SrcID)
+        content = req.content()
+        s = req.sig
+        return pub.verify(content, s)
 
     # returns True iff time is in ttl 
     # (corresponds to the ttl value)
@@ -83,15 +94,21 @@ class Inspector:
         reply_content = ReplyContent.parse(reply_content)
         return reply_content
 
-    def verify_blob(self, blob): 
+    def verify_blob(self, blob, req): 
         if not self.check_blob(blob):
             raise Exception
         reply = self.decrypt_blob(blob, key = self.get_vko(blob)) 
         request = reply.request
         secdata = reply.secdata
+        if (req.srcid != request.srcid):
+            raise Exception
         if not self.check_uid(request, blob):
             raise Exception
+        if not self.check_uid(req, blob):
+            raise Exception
         if not self.check_ttl_scope(request):
+            raise Exception
+        if not self.check_ttl_scope(req):
             raise Exception
         answer = self.check_data(secdata, blob.uid, request.ttl)
         response = Response(self.ID, blob, request.ttl, answer, 
