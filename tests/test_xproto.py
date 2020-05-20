@@ -3,7 +3,7 @@
 import unittest
 import xproto as x
 import datetime
-from xproto import json_utils as jutils
+#from xproto import json_utils as jutils
 
 class AuthTest(unittest.TestCase):
 
@@ -366,11 +366,6 @@ class JSONTest(unittest.TestCase):
         for k in usr2.database.keys():
             self.assertEqual(usr.database[k], usr2.database[k])
 
-    # def test_json_user(self):
-    #     js = jutils.to_json(self.usr)
-    #     usr2 = jutils.json_to_usr(js)
-    #     self.assertEqual(self.usr, usr2)
-
     def test_dict_service(self):
         src = self.src
         d = src.to_dict()
@@ -397,12 +392,46 @@ class JSONTest(unittest.TestCase):
         for k in insp2.database.keys():
             self.assertEqual(insp.database[k], insp2.database[k])
 
+    def test_entity_io(self):
+        # entity = user
+        filename = "tests/tmp/test_entity_save"
+        usr = self.usr
+        x.to_file(filename, usr)
+        usr2 = x.load_usr(filename)
+        self.assertEqual(usr.ID, usr2.ID)
+        keys1 = usr.key_pair
+        keys2 = usr2.key_pair
+        self.assertEqual(keys1, keys2)
+        for k in usr.database.keys():
+            self.assertEqual(usr.database[k], usr2.database[k])
+        for k in usr2.database.keys():
+            self.assertEqual(usr.database[k], usr2.database[k])
 
+        # entity = service
+        src = self.src
+        x.to_file(filename, src)
+        src2 = x.load_src(filename)
+        self.assertEqual(src.ID, src2.ID)
+        keys1 = src.key_pair
+        keys2 = src2.key_pair
+        self.assertEqual(keys1, keys2)
+        for k in src.database.keys():
+            self.assertEqual(src.database[k], src2.database[k])
+        for k in src2.database.keys():
+            self.assertEqual(src.database[k], src2.database[k])
 
-    
-
-
-
+        # entity = inspector
+        insp = self.insp
+        x.to_file(filename, insp)
+        insp2 = x.load_insp(filename)
+        self.assertEqual(insp.ID, insp2.ID)
+        self.assertEqual(insp.scope, insp2.scope)
+        self.assertEqual(insp.vko_pair, insp2.vko_pair)
+        self.assertEqual(insp.sign_pair, insp2.sign_pair)
+        for k in insp.database.keys():
+            self.assertEqual(insp.database[k], insp2.database[k])
+        for k in insp2.database.keys():
+            self.assertEqual(insp.database[k], insp2.database[k])
 
 
 
