@@ -4,11 +4,12 @@ from .utils import rand_bytes
 
 class PublicKey:
     def __init__(
-        self, 
-        curve, 
+        self,
+        curve_type=None, 
         pub_key=None, 
         priv_key=None,
         cert=None):
+        curve = gost3410.CURVES[curve_type]
         if pub_key == None:
             self.key = gost3410.public_key(curve, priv_key)
         else:
@@ -17,6 +18,7 @@ class PublicKey:
             else: # type = bytes/bytearray
                 self.key = gost3410.pub_unmarshal(pub_key)
         self.curve = curve
+        self.curve_type = curve_type
         self.certificate = cert
 
     def verify(self, msg, s):
@@ -30,6 +32,22 @@ class PublicKey:
         ch1 = (self.key == other.key)
         ch2 = (self.curve == other.curve)
         return (ch1 and ch2)
+
+    def to_dict(self):
+        d = {}
+        d["key"] = self.key
+        d["certificate"] = self.certificate
+        d["curve_type"] = self.curve_type
+        return d
+
+    @classmethod
+    def from_dict(cls, d):
+        key = d["key"]
+        cert = d["certificate"]
+        curve_type = d["curve_type"]
+        return cls(curve_type=curve_type, 
+            pub_key=key, cert=cert)
+
 
 
 
@@ -47,7 +65,7 @@ class KeyPair:
             self.private = gost3410.prv_unmarshal(raw_key)
         else:
             self.private = private
-        self.public = PublicKey(self.curve, 
+        self.public = PublicKey(curve_type=self.curve_type, 
             priv_key=self.private, cert=cert)
 
     def sign(self, msg):
@@ -84,9 +102,7 @@ def export_public_key(
     curve_type = "id-tc26-gost-3410-2012-256-paramSetA"):
     curve = gost3410.CURVES[curve_type]
     if isinstance(key, tuple):
-        return PublicKey(curve, pub_key = key)
+        return PublicKey(curve_type=curve_type, pub_key=key)
     else:
-        # decode first, then create key
-        # key = gost3410.pub_unmarshal(key)
         key = gost3410.pub_unmarshal(key)
-        return PublicKey(curve, pub_key = key)
+        return PublicKey(curve_type=curve_type, pub_key=key)

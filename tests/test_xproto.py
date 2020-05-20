@@ -284,7 +284,7 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(self.resp, self.resp2)
 
 
-class JSONTest(unittest.TestCase):
+class IOTest(unittest.TestCase):
 
     def setUp(self):
 
@@ -392,6 +392,17 @@ class JSONTest(unittest.TestCase):
         for k in insp2.database.keys():
             self.assertEqual(insp.database[k], insp2.database[k])
 
+    def test_dict_auth(self):
+        auth = x.AUTH
+        d = auth.to_dict()
+        auth2 = x.AuthCenter.from_dict(d)
+        self.assertEqual(auth.total_ids, auth2.total_ids)
+        self.assertEqual(auth.users, auth2.users)
+        self.assertEqual(auth.id_scope, auth2.id_scope)
+        self.assertEqual(auth.services, auth2.services)
+        self.assertEqual(auth.inspectors_sig, auth2.inspectors_sig)
+        self.assertEqual(auth.inspectors_vko, auth2.inspectors_vko)
+
     def test_entity_io(self):
         # entity = user
         filename = "tests/tmp/test_entity_save"
@@ -433,6 +444,16 @@ class JSONTest(unittest.TestCase):
         for k in insp2.database.keys():
             self.assertEqual(insp.database[k], insp2.database[k])
 
+        # entity = auth center
+        auth = x.AUTH
+        x.to_file(filename, auth)
+        auth2 = x.load_auth(filename)
+        self.assertEqual(auth.total_ids, auth2.total_ids)
+        self.assertEqual(auth.users, auth2.users)
+        self.assertEqual(auth.id_scope, auth2.id_scope)
+        self.assertEqual(auth.services, auth2.services)
+        self.assertEqual(auth.inspectors_sig, auth2.inspectors_sig)
+        self.assertEqual(auth.inspectors_vko, auth2.inspectors_vko)
 
 
 
