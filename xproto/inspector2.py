@@ -8,19 +8,25 @@ import datetime
 
 class Inspector:
     def __init__(self,  scope, 
-        keys_sign = KeyPair(), 
-        keys_vko = KeyPair(), 
-        ID = None,
-        database={}):
-        self.database = database
+        ID=None, keys_sign=None, keys_vko=None, 
+        database=None, auth=None):
         self.scope = scope
         self.ID = ID
+        if keys_sign is None:
+            keys_sign = KeyPair()
+        if keys_vko is None:
+            keys_vko = KeyPair()
         self.sign_pair = keys_sign
         self.vko_pair = keys_vko
+        if database is None:
+            database = {}
+        self.database = database
+        if auth is None:
+            auth = AUTH
+        self.AUTH = auth
 
-    def add_user(self, usr, secdata, 
+    def add_user(self, uid, secdata, 
         date = datetime.datetime.now().date()):
-        uid = usr.ID
         try:
             self.database[uid][date] = secdata 
         except KeyError:
@@ -34,7 +40,7 @@ class Inspector:
     def check_blob(self, blob):
         s = blob.sig
         UID = blob.uid
-        pub = AUTH.get_user(UID)
+        pub = self.AUTH.get_user(UID)
         encoded = blob.content()
         return pub.verify(encoded, s)
 
@@ -44,7 +50,7 @@ class Inspector:
 
     def check_request(self, req):
         SrcID = req.srcid
-        pub = AUTH.get_service(SrcID)
+        pub = self.AUTH.get_service(SrcID)
         content = req.content()
         s = req.sig
         return pub.verify(content, s)

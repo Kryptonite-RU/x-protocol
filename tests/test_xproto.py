@@ -47,7 +47,7 @@ class MessageTest(unittest.TestCase):
         x.AUTH.reg_user(usr)
         x.AUTH.reg_service(src)
         x.AUTH.reg_inspector(insp)
-        insp.add_user(usr, secdata)
+        insp.add_user(usr.ID, secdata)
 
         # Service -> User
         req = src.create_request(usr.ID, scope, ttl)
@@ -128,8 +128,8 @@ class MessageTest(unittest.TestCase):
         x.AUTH.reg_user(usr)
         x.AUTH.reg_service(src)
         x.AUTH.reg_inspector(insp)
-        insp.add_user(usr, old_data, date = old_time)
-        insp.add_user(usr, new_data, date = new_time)
+        insp.add_user(usr.ID, old_data, date = old_time)
+        insp.add_user(usr.ID, new_data, date = new_time)
 
         # create request for user and send
         today = datetime.date(2020, 1, 1)
@@ -195,7 +195,7 @@ class ParserTest(unittest.TestCase):
         x.AUTH.reg_user(usr)
         x.AUTH.reg_service(src)
         x.AUTH.reg_inspector(insp)
-        insp.add_user(usr, secdata)
+        insp.add_user(usr.ID, secdata)
 
         # Service -> User
         req = src.create_request(usr.ID, scope, ttl)
@@ -302,7 +302,7 @@ class IOTest(unittest.TestCase):
         x.AUTH.reg_user(usr)
         x.AUTH.reg_service(src)
         x.AUTH.reg_inspector(insp)
-        insp.add_user(usr, secdata)
+        insp.add_user(usr.ID, secdata)
 
         # Service -> User
         req = src.create_request(usr.ID, scope, ttl)

@@ -11,10 +11,17 @@ def safe_to_dict(obj):
 
 
 class Service:
-    def __init__(self, keys=KeyPair(), ID=None, db={}):
+    def __init__(self, keys=None, ID=None, db=None, auth=None):
         self.ID = ID
+        if keys is None:
+            keys = KeyPair()
         self.key_pair = keys
+        if db is None:
+            db = {}
         self.database = db
+        if auth is None:
+            auth = AUTH
+        self.AUTH = auth
 
     def receive_response(self, raw):
         resp = Response.parse(raw)
@@ -26,17 +33,20 @@ class Service:
     def check_blob(self, blob):
         s = blob.sig
         UID = blob.uid
-        pub = AUTH.get_user(UID)
+        pub = self.AUTH.get_user(UID)
         encoded = blob.content()
         return pub.verify(encoded, s)
 
-    def check_response(self, resp):
+    # check that signature is valid
+    def verify_response(self, resp):
         s = resp.sig
         IID = resp.iid    # Inspector ID
-        pub = AUTH.get_inspector_sig(IID)
+        pub = self.AUTH.get_inspector_sig(IID)
         encoded = resp.content()
-        # check that signature is valid
-        ch1 = pub.verify(encoded, s)
+        return pub.verify(encoded, s)
+
+    def check_response(self, resp):
+        ch1 = self.verify_response(resp)
         # other checks ?? yes/no, ttl? blob?
         ch2 = (resp.answer == b'1')
         return (ch1 and ch2) 
@@ -85,5 +95,5 @@ class Service:
             else:
                 resp = Response.from_dict(val)
             data[req] = resp
-        return cls(keys=keys, ID=ID, db=data)
+        return cls(keys=keys, ID=ID, db=data, auth=None)
   
