@@ -1,6 +1,10 @@
-Реализация X-протокола на языке python.
+Реализация X-протокола на языке python 3.
 
-## 1. Запуск тестов
+# 0. Пререквизиты для запуска/тестирования
+
+Модули pygost, datetime, pickle
+
+# 1. Запуск тестов
 
 Для запуска тестов необходимо в командной строке выполнить следующую команду:
 
@@ -25,7 +29,7 @@
 
 Например:
 
-`python -m cmd.src -u 123 -d "паспортные данные" -t 2099-01-01`
+`python -m cmd.src --form_request --uid 123 --scope "паспортные данные" --due 2099-01-01`
 
 Дата пишется в формате YYYY-MM-DD.
 
@@ -85,7 +89,7 @@
 
 Например:
 
-`python -m cmd.usr -- form_blob --request data/request --secdata "Иванов Иван Иванович"` 
+`python -m cmd.usr --form_blob --request data/request --secdata "Иванов Иван Иванович"` 
 
 ### 2.2.2 Проверка Request (подпись)
 
@@ -107,7 +111,7 @@
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.insp --verify-blob --request <path-to-request> --blob <path-to-blob>`
+`python -m cmd.insp --verify_blob --request <path-to-request> --blob <path-to-blob>`
 
 Опциональными являются дополнительные аргументы:
 1. `--output <path-to-file>` -- путь до файла (с именем файла включительно), куда
