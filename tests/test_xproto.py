@@ -57,7 +57,7 @@ class MessageTest(unittest.TestCase):
         reply = insp.decrypt_blob(blob, 
             key = insp.get_vko(blob))
         # Inspector -> Service
-        resp = insp.verify_blob(blob, req)
+        resp = insp.verify_blob(blob)
 
         # data 
         self.scope = scope
@@ -109,7 +109,7 @@ class MessageTest(unittest.TestCase):
         # trying to give false secdata
         fakedata = "Иванов Иван Петрович"
         fakeblob = self.usr.create_blob(self.req, data = fakedata)
-        resp = self.insp.verify_blob(fakeblob, self.req)
+        resp = self.insp.verify_blob(fakeblob)
         # for fake data the answer must be 0
         self.assertEqual(resp.answer, b'0')
 
@@ -139,7 +139,7 @@ class MessageTest(unittest.TestCase):
         # first we try to verify old data
         blob = usr.create_blob(req, data = old_data)
         reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        resp = insp.verify_blob(blob, req)
+        resp = insp.verify_blob(blob)
         # for old secdata the answer is 0
         self.assertEqual(resp.answer, b'0')
         self.assertFalse(src.check_response(resp))
@@ -147,7 +147,7 @@ class MessageTest(unittest.TestCase):
         # now we try to verify NEW data
         blob = usr.create_blob(req, data = new_data)
         reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        resp = insp.verify_blob(blob, req)
+        resp = insp.verify_blob(blob)
         # for new secdata the answer is 1
         self.assertEqual(resp.answer, b'1')
         self.assertTrue(src.check_response(resp))
@@ -160,7 +160,7 @@ class MessageTest(unittest.TestCase):
         # try to verify old data
         blob = usr.create_blob(req, data = old_data)
         reply = insp.decrypt_blob(blob, key = insp.get_vko(blob))
-        resp = insp.verify_blob(blob, req)
+        resp = insp.verify_blob(blob)
         # for old secdata the answer is 1, 
         # because blob is also old
         self.assertEqual(resp.answer, b'1')
@@ -211,7 +211,7 @@ class ParserTest(unittest.TestCase):
         reply = insp.decrypt_blob(blob3, 
             key = insp.get_vko(blob3))
         # Inspector -> Service
-        resp = insp.verify_blob(blob3, req)
+        resp = insp.verify_blob(blob3)
         raw = insp.send_response(resp)
         resp2 = src.receive_response(raw)
 
@@ -310,7 +310,7 @@ class IOTest(unittest.TestCase):
         blob = usr.create_blob(req, data=secdata)
         # Inspector -> Service
         reply = insp.decrypt_blob(blob, key=insp.get_vko(blob))
-        resp = insp.verify_blob(blob, req)
+        resp = insp.verify_blob(blob)
 
         self.req = req
         self.blob = blob

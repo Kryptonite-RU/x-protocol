@@ -3,6 +3,7 @@
 # 0. Пререквизиты для запуска/тестирования
 
 Модули pygost, datetime, pickle
+Python: версия языка >= 3.5
 
 # 1. Запуск тестов
 
@@ -16,7 +17,7 @@
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.src --form_request --uid <user-id:int> --scope <data-scope:str> --due <date>`
+`python -m cmd.src --form --uid <user-id:int> --scope <data-scope:str> --due <date>`
 
 Опциональными являются дополнительные аргументы:
 1. `--output <path-to-file>` -- путь до файла (с именем файла включительно), куда
@@ -29,7 +30,7 @@
 
 Например:
 
-`python -m cmd.src --form_request --uid 123 --scope "паспортные данные" --due 2099-01-01`
+`python -m cmd.src --form --uid 123 --scope "паспортные данные" --due 2099-01-01`
 
 Дата пишется в формате YYYY-MM-DD.
 
@@ -37,7 +38,7 @@
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.src --check_blob --blob <path-to-blob>`
+`python -m cmd.src --check --blob <path-to-blob>`
 
 Опциональными являются дополнительные аргументы:
 
@@ -52,7 +53,7 @@
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.src --check_response --response <path-to-response>`
+`python -m cmd.src --check --response <path-to-response>`
 
 Опциональными являются дополнительные аргументы:
 
@@ -71,7 +72,7 @@
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.usr --form_blob --request <path-to-request>`
+`python -m cmd.usr --form --request <path-to-request>`
 
 Опциональными являются дополнительные аргументы:
 1. `--output <path-to-file>` -- путь до файла (с именем файла включительно), куда
@@ -89,13 +90,13 @@
 
 Например:
 
-`python -m cmd.usr --form_blob --request data/request --secdata "Иванов Иван Иванович"` 
+`python -m cmd.usr --form --request data/request --secdata "Иванов Иван Иванович"` 
 
 ### 2.2.2 Проверка Request (подпись)
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.usr --check_request --request <path-to-request>`
+`python -m cmd.usr --check --request <path-to-request>`
 
 Опциональными являются дополнительные аргументы:
 
@@ -111,7 +112,7 @@
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.insp --verify_blob --request <path-to-request> --blob <path-to-blob>`
+`python -m cmd.insp --verify --request <path-to-request> --blob <path-to-blob>`
 
 Опциональными являются дополнительные аргументы:
 1. `--output <path-to-file>` -- путь до файла (с именем файла включительно), куда
@@ -124,13 +125,13 @@
 
 Например:
 
-`python -m cmd.insp --verify_blob --blob data/blob --request data/request` 
+`python -m cmd.insp --verify --blob data/blob --request data/request` 
 
 ### 2.3.2 Добавление персональных данных пользователя 
 
 Для данной операции необходимо в командной строке выполнить:
 
-`python -m cmd.insp --add_user --uid <user-id:int> --secdata <data : str>`
+`python -m cmd.insp --add --uid <user-id:int> --secdata <data : str>`
 
 Опциональными являются дополнительные аргументы:
 
