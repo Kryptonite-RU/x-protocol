@@ -100,21 +100,15 @@ class Inspector:
         reply_content = ReplyContent.parse(reply_content)
         return reply_content
 
-    def verify_blob(self, blob, req): 
+    def verify_blob(self, blob): 
         if not self.check_blob(blob):
             raise Exception
         reply = self.decrypt_blob(blob, key = self.get_vko(blob)) 
         request = reply.request
         secdata = reply.secdata
-        if (req.srcid != request.srcid):
-            raise Exception
         if not self.check_uid(request, blob):
             raise Exception
-        if not self.check_uid(req, blob):
-            raise Exception
         if not self.check_ttl_scope(request):
-            raise Exception
-        if not self.check_ttl_scope(req):
             raise Exception
         answer = self.check_data(secdata, blob.uid, request.ttl)
         response = Response(self.ID, blob, request.ttl, answer, 
