@@ -20,7 +20,7 @@ parser.add_argument('--check_response', action="store_true")
 parser.add_argument('--uid', action='store', dest="uid", type=int)
 parser.add_argument('--scope', action="store", dest="scope")
 parser.add_argument('--due', action="store", dest="due")
-parser.add_argument('--output', action="store", default="data/request", dest="out")
+parser.add_argument('--output', action="store", default="data/request",dest="output")
 # data for checking blob
 parser.add_argument('--blob', action="store", default="data/blob", dest="blob")
 # data for checking response
@@ -38,7 +38,7 @@ else:
     src.AUTH = x.load_auth(args.AUTH)
 
 if args.form_request:
-    due = datetime.datetime.strptime(args.due, '%Y-%m-%d')
+    due = datetime.datetime.strptime(args.due, '%Y-%m-%d').date()
     ttl = x.TTL(due)
     req = src.create_request(args.uid, args.scope, ttl)
     x.to_file(args.output, req)
