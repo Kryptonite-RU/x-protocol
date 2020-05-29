@@ -39,6 +39,9 @@ class TTL:
         ch2 = (self.expired == other.expired)
         return ch1 and ch2
 
+    def __str__(self):
+        return 'TTL(produced='+str(self.produced)+', expired='+str(self.expired) +')'
+
 
 
 class Request:
@@ -105,6 +108,14 @@ class Request:
         ch4 = self.ttl == other.ttl
         return ch1 and ch2 and ch3 and ch4
 
+    def __str__(self):
+        res = 'Request:\n'
+        res += ('Service ID: ' + str(self.srcid) + '\n')
+        res += ('User ID: ' + str(self.uid) + '\n')
+        res += ('Scope: ' + self.scope + '\n')
+        res += str(self.ttl)
+        return res
+
     def __hash__(self):
         return hash(self.encode())
 
@@ -159,13 +170,17 @@ class Blob:
         blob  = cls(pub_ephem, UID, reply, sig=sig)
         return blob
 
+    def __str__(self):
+        res = "Blob: " + '\n'
+        res += "User ID: " + str(self.uid) + '\n'
+        res += "Reply (binary): " + str(self.reply) + '\n'
+        return res
+
     def __eq__(self, other):
         ch1 = self.pub == other.pub
         ch2 = self.uid == other.uid
         ch3 = self.reply == other.reply
         return ch1 and ch2 and ch3
-
-
 
 
 class ReplyContent:
@@ -266,6 +281,15 @@ class Response:
         blob = Blob.parse(raw_blob)
         resp = cls(ID, blob, ttl, ans, sig=sig)
         return resp
+
+    def __str__(self):
+        res = "Response: \n"
+        res += "Inspector ID: " + str(self.iid) + '\n'
+        res += str(self.ttl) + '\n'
+        res += "Answer: " + str(self.answer) + '\n'
+        res += str(self.blob)
+        return res
+
 
     def __eq__(self, other):
         ch1 = self.iid == other.iid
