@@ -24,17 +24,21 @@ parser.add_argument('--verbose', '-v', action="store_true")
 args = parser.parse_args()
 
 if args.usr is None:
-    usr = x.load_usr(default.DEFAULT_USER)
+    usr_path = default.DEFAULT_USER
     if args.verbose:
         print("No User file is explicitly given. Default User file will be used.")
 else:
-    usr = x.load_usr(args.usr)
+    usr_path = args.usr
+
 if args.AUTH is None:
-    usr.AUTH = x.load_auth(default.DEFAULT_AUTH)
+    auth_path = default.DEFAULT_AUTH
     if args.verbose:
         print("No Auth file is explicitly given. Default Auth file will be used.")
 else:
-    usr.AUTH = x.load_auth(args.AUTH)
+    auth_path = args.AUTH
+
+usr = x.load_usr(usr_path)
+usr.AUTH = x.load_auth(auth_path)
 
 if args.form:
     if args.req is None:
@@ -68,3 +72,5 @@ else:
     print("1. Add --form to form blob")
     print("2. Add --check to check request signature")
 
+x.to_file(usr_path, usr)
+x.to_file(auth_path, usr.AUTH)

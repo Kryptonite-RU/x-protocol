@@ -33,6 +33,9 @@ class PublicKey:
         ch2 = (self.curve == other.curve)
         return (ch1 and ch2)
 
+    def __str__(self):
+        return str(self.key)
+
     def to_dict(self):
         d = {}
         d["key"] = self.key
@@ -55,12 +58,14 @@ class PublicKey:
 class KeyPair:
     def __init__(
         self, 
-        raw_key=rand_bytes(32),
         curve_type="id-tc26-gost-3410-2012-256-paramSetA",
+        raw_key=None,
         private=None,
         cert=None):
         self.curve = gost3410.CURVES[curve_type]
         self.curve_type = curve_type
+        if raw_key is None:
+            raw_key = rand_bytes(32)
         if private == None:
             self.private = gost3410.prv_unmarshal(raw_key)
         else:

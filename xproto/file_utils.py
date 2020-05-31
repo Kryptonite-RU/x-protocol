@@ -1,13 +1,20 @@
-import pickle
+#import pickle
 import xproto as x
+import json
+from xproto.x_utils import dict_utf, utf_dict 
 
 def dict_to_file(dict, file):
-    with open(file, "wb") as f:
-        pickle.dump(dict, f)
+    with open(file, "w") as f:
+        res = dict_utf(dict)
+        json.dump(res,f)
+        #pickle.dump(dict, f)
 
 def file_to_dict(file):
-    with open(file, "rb") as f:
-        return pickle.load(f)
+    with open(file, "r") as f:
+        json_res = json.load(f)
+        res = utf_dict(json_res)
+        return res
+        #return pickle.load(f)
 
 # def auth_to_json(auth):
 #     #     users = {},

@@ -1,4 +1,5 @@
 from .consts import ID_LENGTH, SIG_LENGTH
+import base64
 
 def safe_encode(x):
     try:
@@ -44,4 +45,32 @@ def parse_number(raw):
 
 def parse_str(raw):
     return raw.decode()
-    
+
+def dict_utf(d):
+    res = dict()
+    for key, value in d.items():
+        if type(value) is str:
+            value_res = 'NOBASE64_' + value
+        elif type(value) is bytes:
+            value_res = str(b'BASE64_' + base64.b64encode(value), 'utf-8')
+        elif type(value) is dict:
+            value_res = dict_utf(value)
+        else:
+            value_res = value
+        res[key] = value_res
+    return res
+
+def utf_dict(d):
+    res = dict()
+    for key, value in d.items():
+        if type(value) is str:
+            value = value.split('_')
+            value_res = base64.b64decode(value[1]) if value[0] == 'BASE64' else value[1]
+        elif type(value) is dict:
+            value_res = utf_dict(value)
+        elif type(value) is list:
+            value_res = tuple(value)
+        else:
+            value_res = value
+        res[key] = value_res
+    return res

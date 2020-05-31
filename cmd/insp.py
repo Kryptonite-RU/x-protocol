@@ -26,17 +26,21 @@ args = parser.parse_args()
 
 # load entities from files
 if args.insp is None:
-    insp = x.load_insp(default.DEFAULT_INSPECTOR)
+    insp_path = default.DEFAULT_INSPECTOR
     if args.verbose:
         print("No Inspector file is explicitly given. Default Inspector file will be used.")
 else:
-    insp = x.load_insp(args.insp)
+    insp_path = args.insp
+
 if args.AUTH is None:
-    insp.AUTH = x.load_auth(default.DEFAULT_AUTH)
+    auth_path = default.DEFAULT_AUTH
     if args.verbose:
         print("No Auth file is explicitly given. Default Auth file will be used.")
 else:
-    insp.AUTH = x.load_auth(args.AUTH)
+    auth_path = args.AUTH
+
+insp = x.load_insp(insp_path)
+insp.AUTH = x.load_auth(auth_path)
 
 if args.verify:
     if args.blob is None:
@@ -66,3 +70,6 @@ else:
     print("Please add one of the options to the query:")
     print(" --verify to verify blob")
     print(" --add to add user to database with personal information")
+
+x.to_file(insp_path, insp)
+x.to_file(auth_path, insp.AUTH)

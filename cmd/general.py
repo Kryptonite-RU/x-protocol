@@ -3,17 +3,21 @@ import xproto as x
 import datetime
 import cmd.default as default
 
-# Three types of operations for service are possible:
-# form request
-# check blob (signature)
-# check response (signature + answer)
+# Seven types of operations for parser are possible:
+# explore service file
+# explore user file
+# explore inspector file
+# explore AUTH file
+# explore request file
+# explore blob file
+# explore response file
 
 parser = argparse.ArgumentParser(description='Parser script')
 # entities
 parser.add_argument('--service', '-src', action="store", dest="src")
 parser.add_argument('--user', '-u', action="store", dest="usr")
 parser.add_argument('--inspector', '-i', action="store", dest="insp")
-parser.add_argument('--auth', '-a', action="store", dest="AUTH")
+parser.add_argument('--auth', '-a', action="store", dest="auth")
 parser.add_argument('--request', '-req', action="store", dest="req")
 parser.add_argument('--blob', '-b', action="store", dest="blob")
 parser.add_argument('--response', '-resp', action="store", dest="response")
@@ -82,11 +86,33 @@ elif args.insp is not None:
                 print()
     except:
         print("Wrong inspector file was given.")
-elif args.AUTH is not None:
+elif args.auth is not None:
     try:
         auth = x.load_auth(args.auth)
-        if args.database:
-            pass
+        print()
+        print()
+        print("AuthCenter DATABASE")
+        print("USERS:")
+        for k in auth.users.keys():
+            print(k)
+            print(auth.users[k])
+            print()
+        print("SERVICES:")
+        for k in auth.services.keys():
+            print(k)
+            print(auth.services[k])
+            print()
+        print("INSPECTORS SIGNATURE KEYS:")
+        for k in auth.inspectors_sig.keys():
+            print(k)
+            print(auth.inspectors_sig[k])
+            print()
+        print("INSPECTORS VKO KEYS:")
+        for k in auth.inspectors_vko.keys():
+            print(k)
+            print(auth.inspectors_vko[k])
+            print()
+            
     except:
         print("Wrong AUTH file was given.")
 elif args.req is not None:

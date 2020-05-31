@@ -4,12 +4,22 @@ from .crypto import PublicKey
 
 class AuthCenter:
     def __init__(self,
-        users = {},
-        services = {},
-        inspectors_sig = {},
-        inspectors_vko = {},
-        scopes = {},
+        users=None,
+        services=None,
+        inspectors_sig=None,
+        inspectors_vko=None,
+        scopes=None,
         total_ids = 0):
+        if users is None:
+            users = {}
+        if services is None:
+            services = {}
+        if inspectors_sig is None:
+            inspectors_sig = {}
+        if inspectors_vko is None:
+            inspectors_vko = {}
+        if scopes is None:
+            scopes = {}
         self.users = users
         self.services = services
         self.inspectors_sig = inspectors_sig

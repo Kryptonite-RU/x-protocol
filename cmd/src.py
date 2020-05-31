@@ -30,17 +30,20 @@ parser.add_argument('--verbose', '-v', action="store_true")
 args = parser.parse_args()
 
 if args.src is None:
-    src = x.load_src(default.DEFAULT_SERVICE)
+    src_path = default.DEFAULT_SERVICE
     if args.verbose:
         print("No Service file is explicitly given. Default service file will be used.")
 else:
-    src = x.load_src(args.src)
+    src_path = args.src
 if args.AUTH is None:
-    src.AUTH = x.load_auth(default.DEFAULT_AUTH)
+    auth_path = default.DEFAULT_AUTH
     if args.verbose:
         print("No Auth file is explicitly given. Default Auth file will be used.")
 else:
-    src.AUTH = x.load_auth(args.AUTH)
+    auth_path = args.AUTH
+
+src = x.load_src(src_path)
+src.AUTH = x.load_auth(auth_path)
 
 if args.form:
     due = datetime.datetime.strptime(args.due, '%Y-%m-%d').date()
@@ -87,3 +90,5 @@ else:
     print("1. Add --form to form request")
     print("2. Add --check to check blob signature or response signature and answer")
 
+x.to_file(src_path, src)
+x.to_file(auth_path, src.AUTH)
