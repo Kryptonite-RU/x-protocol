@@ -8,6 +8,7 @@ import datetime
 class AuthTest(unittest.TestCase):
 
     def test_auth_reg(self):
+        AUTH = x.AuthCenter()
         usr = x.AgentUser()
         usr2 = x.AgentUser()
         src = x.Service()
@@ -15,24 +16,24 @@ class AuthTest(unittest.TestCase):
         insp = x.Inspector("паспортные данные")
         insp2 = x.Inspector("инн")
 
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        x.AUTH.reg_service(src2)
-        x.AUTH.reg_inspector(insp)
-        x.AUTH.reg_user(usr2)
-        x.AUTH.reg_inspector(insp2)
+        AUTH.reg_user(usr)
+        AUTH.reg_service(src)
+        AUTH.reg_service(src2)
+        AUTH.reg_inspector(insp)
+        AUTH.reg_user(usr2)
+        AUTH.reg_inspector(insp2)
 
-        self.assertEqual(x.AUTH.get_user(usr.ID), usr.key_pair.public)
-        self.assertEqual(x.AUTH.get_service(src.ID), src.key_pair.public)
-        self.assertEqual(x.AUTH.get_inspector_sig(insp.ID), insp.sign_pair.public)
-        self.assertEqual(x.AUTH.get_inspector_vko(insp.ID), insp.vko_pair.public)
-        self.assertEqual(x.AUTH.scope2inspector(insp.scope), insp.ID)
+        self.assertEqual(AUTH.get_user(usr.ID), usr.key_pair.public)
+        self.assertEqual(AUTH.get_service(src.ID), src.key_pair.public)
+        self.assertEqual(AUTH.get_inspector_sig(insp.ID), insp.sign_pair.public)
+        self.assertEqual(AUTH.get_inspector_vko(insp.ID), insp.vko_pair.public)
+        self.assertEqual(AUTH.scope2inspector(insp.scope), insp.ID)
 
 
 class MessageTest(unittest.TestCase):
 
     def setUp(self):
-
+        
         # some random data
         scope = "паспортные данные"
         secdata = "Иванов Иван Иванович"
@@ -41,12 +42,13 @@ class MessageTest(unittest.TestCase):
         ttl = x.TTL(due)
 
         # REGISTRATION STEP
-        usr = x.AgentUser()
-        src = x.Service()
-        insp = x.Inspector(scope)
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        x.AUTH.reg_inspector(insp)
+        AUTH = x.AuthCenter()
+        usr = x.AgentUser(auth=AUTH)
+        src = x.Service(auth=AUTH)
+        insp = x.Inspector(scope, auth=AUTH)
+        AUTH.reg_user(usr)
+        AUTH.reg_service(src)
+        AUTH.reg_inspector(insp)
         insp.add_user(usr.ID, secdata)
 
         # Service -> User
@@ -69,7 +71,7 @@ class MessageTest(unittest.TestCase):
         self.usr = usr
         self.src = src
         self.insp = insp
-        self.auth = x.AUTH
+        self.auth = AUTH
 
         # messages
         self.req = req
@@ -114,7 +116,7 @@ class MessageTest(unittest.TestCase):
         self.assertEqual(resp.answer, b'0')
 
     def test_form_old_data(self):
-        scope = "паспортные данные"
+        scope = "паспортные данные3"
         old_data = "Иванов Иван Иванович"
         old_time = datetime.date(1990, 1, 1)
         # then the user changed his surname
@@ -122,12 +124,13 @@ class MessageTest(unittest.TestCase):
         new_time = datetime.date(2010, 1, 1)
 
         # REGISTRATION STEP
-        usr = x.AgentUser()
-        src = x.Service()
-        insp = x.Inspector(scope)
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        x.AUTH.reg_inspector(insp)
+        AUTH = x.AuthCenter()
+        usr = x.AgentUser(auth=AUTH)
+        src = x.Service(auth=AUTH)
+        insp = x.Inspector(scope, auth=AUTH)
+        AUTH.reg_user(usr)
+        AUTH.reg_service(src)
+        AUTH.reg_inspector(insp)
         insp.add_user(usr.ID, old_data, date = old_time)
         insp.add_user(usr.ID, new_data, date = new_time)
 
@@ -182,19 +185,20 @@ class ParserTest(unittest.TestCase):
     def setUp(self):
 
         # some random data
-        scope = "паспортные данные"
+        scope = "паспортные данные4"
         secdata = "Иванов Иван Иванович"
         today = datetime.datetime.today().date()
         due = datetime.date(2099, 5, 10)
         ttl = x.TTL(due)
 
         # REGISTRATION STEP
-        usr = x.AgentUser()
-        src = x.Service()
-        insp = x.Inspector(scope)
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        x.AUTH.reg_inspector(insp)
+        AUTH = x.AuthCenter()
+        usr = x.AgentUser(auth=AUTH)
+        src = x.Service(auth=AUTH)
+        insp = x.Inspector(scope, auth=AUTH)
+        AUTH.reg_user(usr)
+        AUTH.reg_service(src)
+        AUTH.reg_inspector(insp)
         insp.add_user(usr.ID, secdata)
 
         # Service -> User
@@ -289,19 +293,20 @@ class IOTest(unittest.TestCase):
     def setUp(self):
 
         # some random data
-        scope = "паспортные данные"
+        scope = "паспортные данные5"
         secdata = "Иванов Иван Иванович"
         today = datetime.datetime.today().date()
         due = datetime.date(2099, 5, 10)
         ttl = x.TTL(due)
 
         # REGISTRATION STEP
-        usr = x.AgentUser()
-        src = x.Service()
-        insp = x.Inspector(scope)
-        x.AUTH.reg_user(usr)
-        x.AUTH.reg_service(src)
-        x.AUTH.reg_inspector(insp)
+        AUTH = x.AuthCenter()
+        usr = x.AgentUser(auth=AUTH)
+        src = x.Service(auth=AUTH)
+        insp = x.Inspector(scope, auth=AUTH)
+        AUTH.reg_user(usr)
+        AUTH.reg_service(src)
+        AUTH.reg_inspector(insp)
         insp.add_user(usr.ID, secdata)
 
         # Service -> User
@@ -320,6 +325,7 @@ class IOTest(unittest.TestCase):
         self.usr = usr
         self.src = src
         self.insp = insp
+        self.auth = AUTH
 
 
     def test_dict_request(self):
@@ -393,7 +399,7 @@ class IOTest(unittest.TestCase):
             self.assertEqual(insp.database[k], insp2.database[k])
 
     def test_dict_auth(self):
-        auth = x.AUTH
+        auth = self.auth 
         d = auth.to_dict()
         auth2 = x.AuthCenter.from_dict(d)
         self.assertEqual(auth.total_ids, auth2.total_ids)
@@ -445,7 +451,7 @@ class IOTest(unittest.TestCase):
             self.assertEqual(insp.database[k], insp2.database[k])
 
         # entity = auth center
-        auth = x.AUTH
+        auth = self.auth 
         x.to_file(filename, auth)
         auth2 = x.load_auth(filename)
         self.assertEqual(auth.total_ids, auth2.total_ids)

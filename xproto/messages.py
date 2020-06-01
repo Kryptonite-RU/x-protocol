@@ -6,7 +6,9 @@ import datetime
 
 
 class TTL:
-    def __init__(self, expire_date, produced=datetime.datetime.now().date()):
+    def __init__(self, expire_date, produced=None):
+        if produced is None:
+            produced=datetime.datetime.now().date()
         self.produced = produced
         self.expired = expire_date
 
@@ -130,13 +132,13 @@ class Blob:
         if sig:
             self.sig = sig
         else:
-            content  = safe_encode(self.pub)
+            content  = self.pub
             content += encode_id(self.uid)
             content += safe_encode(self.reply)
             self.sig = key_pair.sign(content)
 
     def content(self):
-        res  = safe_encode(self.pub)
+        res  = self.pub
         res += encode_id(self.uid)
         res += safe_encode(self.reply)
         return res
@@ -184,9 +186,11 @@ class Blob:
 
 
 class ReplyContent:
-    def __init__(self, req, secdata, salt = rand_bytes(32)):
+    def __init__(self, req, secdata, salt=None):
         self.request = req
         self.secdata = secdata
+        if salt is None:
+            salt = rand_bytes(32)
         self.salt = salt
 
     def request_len(self):
@@ -201,7 +205,9 @@ class ReplyContent:
         res += safe_encode(self.salt)
         return res
 
-    def encrypt(self, key, iv = rand_bytes(16)):
+    def encrypt(self, key, iv=None):
+        if iv is None:
+            iv = rand_bytes(16)
         data = self.encode()
         cipher = crypto.Grasshopper(key)
         cbc = crypto.CBC(cipher)

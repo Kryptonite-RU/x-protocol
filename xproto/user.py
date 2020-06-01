@@ -49,7 +49,7 @@ class AgentUser:
         # create ephemeral key and run VKO
         ephem_keys = KeyPair()
         vko_key = vko(ephem_keys, inspector_pub)
-
+        # print(vko_key)
         # create reply content: Request + SecData + salt
         if data == None:
             data = self.get_secdata(request)
