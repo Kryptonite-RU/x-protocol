@@ -6,7 +6,7 @@ from xproto.x_utils import dict_utf, utf_dict
 def dict_to_file(dict, file):
     with open(file, "w") as f:
         res = dict_utf(dict)
-        json.dump(res,f)
+        json.dump(res, f, indent=4)
         #pickle.dump(dict, f)
 
 def file_to_dict(file):
