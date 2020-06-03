@@ -133,3 +133,8 @@ elif args.response is not None:
         print(resp)
     except:
         print("Wrong Response file was given.")
+
+
+def printv(string, verbosity):
+    if verbosity:
+        print(string)
