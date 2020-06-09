@@ -1,3 +1,233 @@
+### English
+
+X-protocol python 3 realization.
+
+# 0. Prerequisites for launching / testing
+
+Modules: pygost, datetime, json
+Python: version >= 3.5
+
+# 1. Running tests
+
+It is necessary to execute the following operation in the command line:
+
+`python -m unittest discover`
+
+# 2. Сommand line utilities
+
+You can use an additional key in all the commands below.
+`--verbose` to display additional information.
+All default paths are in the default.py file.
+
+## 2.1 Service commands
+
+### 2.1.1 Request generation
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.src --form --uid <user-id:int> --scope <data-scope:str> --due <date>`
+
+There are also optional arguments:
+
+1. `--output <path-to-file>` -- file path (including file name), where the generated
+   request will be saved, the default path = `data/request`.
+2. `--service <path-to-service>` -- path to the file with keys and additional information
+   about the service, the default path is = `data/src`, it can be changed in default.py file or passed
+   directly to the command line.
+3. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.)
+
+For example:
+
+`python -m cmd.src --form --uid 123 --scope "passport" --due 2099-01-01`
+
+**The date is written as YYYY-MM-DD.**
+
+### 2.1.2 Blob signature validation (coming from user)
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.src --check --blob <path-to-blob>`
+
+There are also optional arguments:
+
+1. `--service <path-to-service>` -- path to the file with keys and additional information
+   about the service, the default path is = `data/src`, it can be changed in default.py file or passed
+   directly to the command line.
+2. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.)
+
+
+### 2.1.3 Inspector response validation
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.src --check --response <path-to-response>`
+
+There are also optional arguments:
+
+1. `--service <path-to-service>` -- path to the file with keys and additional information
+   about the service, the default path is = `data/src`, it can be changed in default.py file or passed
+   directly to the command line.
+2. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.)
+
+Using this operation, the service verifies the signature of the inspector,
+as well as the response confirmation (whether the encrypted personal data
+provided in the blob is correct).
+
+## 2.2 User commands
+
+### 2.2.1 Blob generation
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.usr --form --request <path-to-request>`
+
+There are also optional arguments:
+
+1. `--output <path-to-file>` -- file path (including file name), where the generated
+   blob will be saved, the default path = `data/blob`.
+2. `--secdata <personal data>` -- user personal data, which corresponds the request.
+   If the personal data is not provided during the command execution, then it will be
+   requested (together with the output information about the service ID, scope and data,
+   until which the personal data is required).
+2. `--user <path-to-user>` -- path to the file with keys and additional information
+   about the user, the default path is = `data/usr`, it can be changed in default.py file or passed
+   directly to the command line.
+3. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.).
+
+For example:
+
+`python -m cmd.usr --form --request data/request --secdata "Ivanov Ivan Ivanovich"` 
+
+### 2.2.2 Request validation (signature)
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.usr --check --request <path-to-request>`
+
+There are also optional arguments:
+
+1. `--user <path-to-user>` -- path to the file with keys and additional information
+   about the user, the default path is = `data/usr`, it can be changed in default.py file or passed
+   directly to the command line.
+2. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.).
+
+## 2.3 Inspector commands
+
+### 2.3.1 Blob verification
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.insp --verify --blob <path-to-blob>`
+
+There are also optional arguments:
+
+1. `--output <path-to-file>` -- file path (including file name), where the generated
+   response will be saved, the default path = `data/response`.
+2. `--inspector <path-to-inspector>` -- path to the file with keys and additional information
+   about the user, the default path is = `data/insp`, it can be changed in default.py file or passed
+   directly to the command line.
+3. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.).
+
+For example:
+
+`python -m cmd.insp --verify --blob data/blob` 
+
+### 2.3.2 User personal data addition 
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.insp --add --uid <user-id:int> --secdata <data : str>`
+
+There are also optional arguments:
+
+1. `--inspector <path-to-inspector>` -- path to the file with keys and additional information
+   about the user, the default path is = `data/insp`, it can be changed in default.py file or passed
+   directly to the command line.
+2. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.).
+
+## 2.4 Entity creation commands
+
+### 2.4.1 uer/service/inspector creation
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.create --[option]`
+
+1. For user creation: `--user`;
+2. For service creation `--service`;
+3. For inspector creation `--inspector`. Additionally, you must specify the option
+   `--scope <scope: string>` - the type of personal data that the inspector verifies.
+
+There are also optional arguments:
+
+1. `--output <path-to-file>` -- path to the file of the entity. If it is not provided,
+   the default path will be used.
+2. `--key <path-to-binary-key-file>` -- path to the key file (binary file, at least 32 bytes
+   for user and service, at least 64 bytes for inspector).
+3. `--auth <path-to-auth>` -- path to the file with a certificate authority database
+   (provides the scope -> inspector map etc.).
+
+### 2.4.2 Certificate authority creation
+
+For this operation, you must run the following on the command line:
+
+`python -m cmd.auth`
+
+There are also optional arguments:
+1. `--output <path-to-file>` -- path to the file of the entity. If it is not provided,
+   the default path will be used.
+
+# 3. Command-line protocol emulation example
+
+```
+# create certificate authority file
+python -m cmd.auth -v
+
+# create user file and write down in data/usr1
+python -m cmd.create --user --output data/usr1 
+
+# create service file
+python -m cmd.create --service --output data/src
+
+# create inspector file
+python -m cmd.create --inspector --scope "passport" --output data/insp
+
+# register user personal data with the service
+python -m cmd.insp --inspector data/insp --add --uid 1 --secdata "Ivanov Ivan Ivanovich"
+
+# The service requests user personal data
+ python -m cmd.src --form --uid 1 --scope "passport" --due 2020-10-10
+
+# The user validates the request signature (optional)
+python -m cmd.usr --check --request data/request --user data/usr1
+
+# The user generates a blob
+python -m cmd.usr --form --user data/usr1 --request data/request --secdata "Ivanov Ivan Ivanovich"
+
+# The inspector verifies the blob
+python -m cmd.insp --verify --blob data/blob
+
+# The service verifies the response is correct
+python -m cmd.src --check --response data/response
+
+# If the user forms a blob with invalid personal data ...
+python -m cmd.usr --form --user data/usr1 --request data/request --secdata "Ivanov Ivan Petrovich" --output data/fake_blob
+
+python -m cmd.insp --verify --blob data/fake_blob --output data/response_for_fake
+
+# then the response will not pass the inspector verification step
+python -m cmd.src --check --response data/response_for_fake
+```
+
+### Russian
+
 Реализация X-протокола на языке python 3.
 
 # 0. Пререквизиты для запуска/тестирования
@@ -52,7 +282,7 @@ Python: версия языка >= 3.5
    сервисе, по умолчанию путь = `data/src`, можно изменить в файле default.py
    или передать в явном виде.
 2. `--auth <path-to-auth>` -- путь до файла с базой данных центра аутентификации
-   (задает отображение scope -> inspector и т.д.), по умолчанию путь `data/src`.
+   (задает отображение scope -> inspector и т.д.), по умолчанию путь `data/AUTH`.
 
 
 ### 2.1.3 Проверка ответа инспектора 
