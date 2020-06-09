@@ -74,11 +74,11 @@ def load_src(args):
         print("Service path: ", src_path)
         print("Auth path: ", auth_path(args))
         src = None
-    return src
+    return src, src_path
 
 
 def run_check(args):
-    src = load_src(args)
+    src, src_path = load_src(args)
     if src is None:
         print("No service file is provided.")
         return None
@@ -107,7 +107,7 @@ def run_check(args):
 
 
 def run_form(args):
-    src = load_src(args)
+    src, src_path = load_src(args)
     if src is None:
         print("No service file is provided.")
         return None
@@ -125,7 +125,7 @@ def run_form(args):
         print("The following file for output was used: ", args.output)
     print("Request was succesfully created. Stored in file: ", args.output)
     x.to_file(src_path, src)
-    x.to_file(auth_path, src.AUTH)
+    x.to_file(auth_path(args), src.AUTH)
 
 
 if __name__ == "__main__":
