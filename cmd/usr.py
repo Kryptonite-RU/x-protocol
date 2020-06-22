@@ -14,11 +14,9 @@ def check_args(args):
         print("1. Add --form to form blob")
         print("2. Add --check to check request signature")
         return False
-
     if (args.req is None):
         print("Please provide request file")
         return False
-
     return True
 
 
@@ -54,48 +52,42 @@ def load_usr(args):
     try:
         usr = x.load_usr(usr_path)
         usr.AUTH = x.load_auth(auth_path(args))
-    except:
-        print("Error when trying to load User or/and Auth file")
+        return usr, usr_path
+    except x.UsrLoadError:
+        print("Error when trying to load User file")
         print("User path: ", usr_path)
+        raise
+    except x.AuthLoadError:
+        print("Error when trying to load Auth file")
         print("Auth path: ", auth_path(args))
-        usr = None
-    return usr, usr_path
-
+        raise
 
 def run_check(args):
     usr, usr_path = load_usr(args)
-    if usr is None:
-        print("No user file is provided.")
-        return None
-    else:
-        d = x.file_to_dict(args.req)
-        try:
-            req = x.Request.from_dict(d)
-            if usr.check_request(req):
-                print("Correct signature for request")
-            else:
-                print("Incorrect signature for request")
-        except:
-            print("Wrong request format. Cannot parse.")
+    d = x.file_to_dict(args.req)
+    try:
+        req = x.Request.from_dict(d)
+        if usr.check_request(req):
+            print("Correct signature for request")
+        else:
+            print("Incorrect signature for request")
+    except:
+        print("Wrong request format. Cannot parse.")
 
 def run_form(args):
     usr, usr_path = load_usr(args)
-    if usr is None:
-        print("No user file is provided.")
-        return None
-    else:
-        d = x.file_to_dict(args.req)
-        req = x.Request.from_dict(d)
-        try:
-            blob = usr.create_blob(req, data=args.secdata)
-        except:
-            print("Problems with forming Blob. Request might be damaged or wrong")
-            blob = None
-        if blob is not None:
-            x.to_file(args.output, blob)
-            print("The blob was succesfully created. Stored in file: ", args.output) 
-            x.to_file(usr_path, usr)
-            x.to_file(auth_path(args), usr.AUTH)
+    d = x.file_to_dict(args.req)
+    req = x.Request.from_dict(d)
+    try:
+        blob = usr.create_blob(req, data=args.secdata)
+    except:
+        print("Problems with forming Blob. Request might be damaged or wrong")
+        blob = None
+    if blob is not None:
+        x.to_file(args.output, blob)
+        print("The blob was succesfully created. Stored in file: ", args.output) 
+        x.to_file(usr_path, usr)
+        x.to_file(auth_path(args), usr.AUTH)
 
 
 

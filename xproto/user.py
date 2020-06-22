@@ -3,6 +3,7 @@ from .messages import ReplyContent, Blob, Request
 from .auth_center import AUTH 
 
 class AgentUser:
+
     def __init__(self, keys=None, ID=None, db=None, auth=None):
         self.ID = ID
         if keys is None:

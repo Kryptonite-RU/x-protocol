@@ -69,19 +69,19 @@ def load_src(args):
     try:
         src = x.load_src(src_path)
         src.AUTH = x.load_auth(auth_path(args))
-    except:
-        print("Error when trying to load Src or/and Auth file")
+        return src, src_path
+    except x.SrcLoadError:
+        print("Error when trying to load Src file")
         print("Service path: ", src_path)
+        raise
+    except x.AuthLoadError:
+        print("Error when trying to load Auth file")
         print("Auth path: ", auth_path(args))
-        src = None
-    return src, src_path
+        raise
 
 
 def run_check(args):
     src, src_path = load_src(args)
-    if src is None:
-        print("No service file is provided.")
-        return None
     if args.blob is not None:
         d = x.file_to_dict(args.blob)
         blob = x.Blob.from_dict(d)
@@ -108,9 +108,6 @@ def run_check(args):
 
 def run_form(args):
     src, src_path = load_src(args)
-    if src is None:
-        print("No service file is provided.")
-        return None
     due = datetime.datetime.strptime(args.due, '%Y-%m-%d').date()
     ttl = x.TTL(due)
     req = src.create_request(args.uid, args.scope, ttl)

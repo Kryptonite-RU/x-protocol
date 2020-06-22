@@ -65,12 +65,15 @@ def load_insp(args):
     try:
         insp = x.load_insp(insp_path)
         insp.AUTH = x.load_auth(auth_path(args))
-    except:
-        print("Error when trying to load Inspector or/and Auth file")
+        return insp, insp_path
+    except x.InspLoadError:
+        print("Error when trying to load Inspector file")
         print("Inspector path: ", insp_path)
+        raise
+    except x.AuthLoadError:
+        print("Error when trying to load Auth file")
         print("Auth path: ", auth_path(args))
-        insp = None
-    return insp, insp_path
+        raise
 
 
 def run_verify(args):

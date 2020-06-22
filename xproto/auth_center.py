@@ -1,6 +1,7 @@
 from .x_utils import safe_encode
+from .errors import UsrIDError, SrcIDError, InspIDError, CertificateError
 from .consts import ID_LENGTH
-from .crypto import PublicKey
+from .crypto import PublicKey, KeyPair, pub_marshal
 
 class AuthCenter:
     def __init__(self,
@@ -9,6 +10,7 @@ class AuthCenter:
         inspectors_sig=None,
         inspectors_vko=None,
         scopes=None,
+        auth_key=None,
         total_ids = 0):
         if users is None:
             users = {}
@@ -20,11 +22,14 @@ class AuthCenter:
             inspectors_vko = {}
         if scopes is None:
             scopes = {}
+        if auth_key is None:
+            auth_key = KeyPair()
         self.users = users
         self.services = services
         self.inspectors_sig = inspectors_sig
         self.inspectors_vko = inspectors_vko
         self.id_scope = scopes
+        self.key = auth_key
         self.total_ids = total_ids
 
     def fresh_uid(self):
@@ -45,20 +50,25 @@ class AuthCenter:
     def reg_user(self, user):
         ID = self.fresh_uid()
         user.ID = ID
-        self.users[ID] = user.key_pair.public
         # some certification goes here 
+        self.certify(user.key_pair.public)
+        self.users[ID] = user.key_pair.public
 
     def reg_service(self, src):
         ID = self.fresh_srcid()
         src.ID = ID
-        self.services[ID] = src.key_pair.public
         # some certification goes here 
+        self.certify(src.key_pair.public)
+        self.services[ID] = src.key_pair.public
 
     def reg_inspector(self, insp):
         assert(insp.scope != None)
         encoded = safe_encode(insp.scope)
         ID = self.fresh_iid()
         insp.ID = ID
+        # some certification goes here 
+        self.certify(insp.sign_pair.public)
+        self.certify(insp.vko_pair.public)
         self.inspectors_sig[ID] = insp.sign_pair.public
         self.inspectors_vko[ID] = insp.vko_pair.public
         self.id_scope[ID] = encoded
@@ -69,28 +79,59 @@ class AuthCenter:
         return ID
 
     def get_user(self, ID):
-        try:
-            return self.users[ID]
-        except KeyError:
-            return None
+        if ID in self.users:
+            pubkey =  self.users[ID]
+            if self.verify_certificate(pubkey):
+                return pubkey
+            else:
+                # certificate is invalid
+                raise CertificateError
+        else:
+            raise UsrIDError
 
     def get_service(self, ID):
-        try:
-            return self.services[ID]
-        except KeyError:
-            return None
+        if ID in self.services:
+            pubkey = self.services[ID]
+            if self.verify_certificate(pubkey):
+                return pubkey
+            else:
+                # certificate is invalid
+                raise CertificateError
+        else:
+            raise SrcIDError
 
     def get_inspector_vko(self, ID):
-        try:
-            return self.inspectors_vko[ID]
-        except KeyError:
-            return None
+        if ID in self.inspectors_vko:
+            pubkey = self.inspectors_vko[ID]
+            if self.verify_certificate(pubkey):
+                return pubkey
+            else:
+                # certificate is invalid
+                raise CertificateError
+        else:
+            raise InspIDError
 
     def get_inspector_sig(self, ID):
-        try:
-            return self.inspectors_sig[ID]
-        except KeyError:
-            return None
+        if ID in self.inspectors_sig:
+            pubkey = self.inspectors_sig[ID]
+            if self.verify_certificate(pubkey):
+                return pubkey
+            else:
+                # certificate is invalid
+                raise CertificateError
+        else:
+            raise InspIDError
+
+    def verify_certificate(self, pubkey):
+        cert = pubkey.certificate
+        raw = pub_marshal(pubkey.key)
+        return self.key.public.verify(raw, cert)
+
+    def certify(self, pubkey):
+        raw = pub_marshal(pubkey.key)
+        cert = self.key.sign(raw)
+        pubkey.certificate = cert
+
 
     def to_dict(self):
         d = {}
@@ -99,6 +140,7 @@ class AuthCenter:
         d["inspectors"] = {}
         d["scopes"] = {}
         d["total_ids"] = self.total_ids
+        d["key"] = self.key.to_dict()
         # write all users database
         users = self.users
         for (i, id) in enumerate(users.keys()):
@@ -129,6 +171,7 @@ class AuthCenter:
         inspectors_vko = {}
         scopes = {}
         total_ids = d["total_ids"]
+        auth_key = KeyPair.from_dict(d["key"])
         d_usr = d["users"]
         for i in d_usr.keys():
             key = PublicKey.from_dict(d_usr[i]["key"])
@@ -149,7 +192,8 @@ class AuthCenter:
         return cls(users=users, services=services,
             inspectors_vko=inspectors_vko,
             inspectors_sig=inspectors_sig,
-            scopes=scopes, total_ids=total_ids)
+            scopes=scopes, total_ids=total_ids,
+            auth_key = auth_key)
 
 
 AUTH = AuthCenter()
@@ -158,4 +202,4 @@ def find_id(d, scope):
     for k in d.keys():
         if d[k] == scope:
             return k
-    raise Exception
+    raise InspIDError

@@ -2,6 +2,7 @@
 import xproto as x
 import json
 from xproto.x_utils import dict_utf, utf_dict 
+from xproto.errors import UsrLoadError, SrcLoadError, InspLoadError,AuthLoadError
 
 def dict_to_file(dict, file):
     with open(file, "w") as f:
@@ -14,44 +15,37 @@ def file_to_dict(file):
         json_res = json.load(f)
         res = utf_dict(json_res)
         return res
-        #return pickle.load(f)
-
-# def auth_to_json(auth):
-#     #     users = {},
-#     #     services = {}
-#     #     inspectors_sig = {}
-#     #     inspectors_vko = {}
-#     #     scopes = {},
-#     #     total_ids = 0
-#     d = {}
-#     d["id"] = insp.ID
-#     d["scope"] = insp.scope
-#     d["sign_private"] = insp.sign_pair.private
-#     d["sign_certificate"] = src.sign_pair.public.certificate
-#     d["vko_private"] = insp.vko_pair.private
-#     d["vko_certificate"] = insp.vko_pair.public.certificate
-#     d["database"] = insp.database
-#     return json.dumps(d)
-
 
 def load_src(filename):
     d = file_to_dict(filename)
-    src = x.Service.from_dict(d)
+    try:
+        src = x.Service.from_dict(d)
+    except:
+        raise SrcLoadError from None
     return src
 
 def load_usr(filename):
     d = file_to_dict(filename)
-    usr = x.AgentUser.from_dict(d)
+    try:
+        usr = x.AgentUser.from_dict(d)
+    except:
+        raise UsrLoadError from None
     return usr
 
 def load_insp(filename):
     d = file_to_dict(filename)
-    insp = x.Inspector.from_dict(d)
+    try:
+        insp = x.Inspector.from_dict(d)
+    except:
+        raise InspLoadError from None
     return insp
 
 def load_auth(filename):
     d = file_to_dict(filename)
-    auth = x.AuthCenter.from_dict(d)
+    try:
+        auth = x.AuthCenter.from_dict(d)
+    except:
+        raise AuthLoadError from None
     return auth
 
 def to_file(filename, entity):
